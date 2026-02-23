@@ -11,6 +11,7 @@ import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import { Finding } from '../types';
+import CommentsPanel from './CommentsPanel';
 
 interface FindingDetailsProps {
   finding: Finding; primaryResource?: string;
@@ -294,6 +295,7 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
           </Container>
         </SpaceBetween>
       </div>
+      <CommentsPanel screenName={`Finding: ${finding.title}`} />
     </div>
     </>
   );

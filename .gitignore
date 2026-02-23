@@ -9,6 +9,10 @@ dist/
 .env.local
 .env.*.local
 
+# AWS Configuration
+src/aws-exports.js
+src/aws-exports.ts
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

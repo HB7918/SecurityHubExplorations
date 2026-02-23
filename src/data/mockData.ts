@@ -103,8 +103,8 @@ export const mockFindings: Finding[] = [
   {
     id: 'finding-2',
     title: 'Potential Remote Execution: Lambda function accessible through API Gateway without authorization has code vulnerabilities',
-    type: 'Exposure',
-    severity: 'Critical',
+    type: 'Threat',
+    severity: 'High',
     status: 'New',
     count: 6,
     impact: 90,
@@ -136,8 +136,8 @@ export const mockFindings: Finding[] = [
   {
     id: 'finding-3',
     title: 'S3 Bucket with public read access contains sensitive data',
-    type: 'Exposure',
-    severity: 'High',
+    type: 'Threat',
+    severity: 'Medium',
     status: 'In Progress',
     count: 3,
     impact: 60,
@@ -196,8 +196,8 @@ export const mockFindings: Finding[] = [
   {
     id: 'finding-5',
     title: 'RDS instance publicly accessible with weak authentication credentials',
-    type: 'Exposure',
-    severity: 'Critical',
+    type: 'Threat',
+    severity: 'High',
     status: 'New',
     count: 5,
     impact: 88,
@@ -228,8 +228,8 @@ export const mockFindings: Finding[] = [
   {
     id: 'finding-6',
     title: 'ECS task role with overly permissive S3 and DynamoDB access in production',
-    type: 'Exposure',
-    severity: 'Critical',
+    type: 'Threat',
+    severity: 'Low',
     status: 'New',
     count: 4,
     impact: 82,
@@ -259,7 +259,7 @@ export const mockFindings: Finding[] = [
     id: 'finding-7',
     title: 'CloudFront distribution serving content from unencrypted S3 origin',
     type: 'Exposure',
-    severity: 'Critical',
+    severity: 'High',
     status: 'New',
     count: 3,
     impact: 75,
@@ -287,8 +287,8 @@ export const mockFindings: Finding[] = [
   {
     id: 'finding-8',
     title: 'IAM user with long-lived access keys and console access without MFA',
-    type: 'Threat',
-    severity: 'High',
+    type: 'Exposure',
+    severity: 'Medium',
     status: 'New',
     count: 3,
     impact: 65,
@@ -317,8 +317,8 @@ export const mockFindings: Finding[] = [
   {
     id: 'finding-9',
     title: 'EC2 instance running outdated AMI with known kernel vulnerabilities',
-    type: 'Threat',
-    severity: 'High',
+    type: 'Exposure',
+    severity: 'Low',
     status: 'In Progress',
     count: 5,
     impact: 70,
@@ -346,66 +346,7 @@ export const mockFindings: Finding[] = [
       'Remove public IP addresses and route traffic through a load balancer'
     ]
   },
-  {
-    id: 'finding-10',
-    title: 'Lambda function with embedded secrets in environment variables',
-    type: 'Threat',
-    severity: 'High',
-    status: 'New',
-    count: 4,
-    impact: 62,
-    resource: 'prod-email-sender',
-    resourceType: 'AWS::Lambda::Function',
-    account: '295562301397',
-    region: 'us-east-1',
-    age: '3 days',
-    traits: [
-      { id: 't22', name: 'Hardcoded Secrets', category: 'Vulnerability' },
-      { id: 't23', name: 'Plaintext Credentials', category: 'Misconfiguration' }
-    ],
-    aiSummary: 'A Lambda function has database credentials and API keys stored as plaintext environment variables. If the function is compromised or logs are exposed, these secrets could be used for lateral movement.',
-    similarFindings: [
-      { id: 'sf40', resource: 'prod-sms-sender', account: '295562301397', region: 'us-east-1' },
-      { id: 'sf41', resource: 'prod-webhook-handler', account: '295562301398', region: 'us-west-2' },
-      { id: 'sf42', resource: 'prod-cron-runner', account: '295562301397', region: 'eu-west-1' },
-      { id: 'sf43', resource: 'prod-data-importer', account: '295562301399', region: 'us-east-1' }
-    ],
-    attackPath: ap10,
-    remediationSteps: [
-      'Migrate secrets to AWS Secrets Manager or SSM Parameter Store',
-      'Remove plaintext credentials from Lambda environment variables',
-      'Enable automatic secret rotation where supported'
-    ]
-  },
-  {
-    id: 'finding-11',
-    title: 'CloudTrail logging disabled in production account',
-    type: 'Threat',
-    severity: 'High',
-    status: 'New',
-    count: 2,
-    impact: 55,
-    resource: 'prod-account-trail',
-    resourceType: 'CloudTrail',
-    account: '295562301397',
-    region: 'us-east-1',
-    age: '1 day',
-    traits: [
-      { id: 't24', name: 'Logging Disabled', category: 'Misconfiguration' },
-      { id: 't25', name: 'No Audit Trail', category: 'Misconfiguration' }
-    ],
-    aiSummary: 'CloudTrail logging has been disabled in a production account, eliminating visibility into API calls and user activity. This prevents detection of unauthorized access and makes incident response significantly harder.',
-    similarFindings: [
-      { id: 'sf44', resource: 'staging-account-trail', account: '295562301398', region: 'us-west-2' },
-      { id: 'sf45', resource: 'dev-account-trail', account: '295562301399', region: 'eu-west-1' }
-    ],
-    attackPath: ap11,
-    remediationSteps: [
-      'Re-enable CloudTrail logging immediately in all regions',
-      'Configure CloudTrail to deliver logs to a centralized S3 bucket with integrity validation',
-      'Set up CloudWatch alarms for CloudTrail configuration changes'
-    ]
-  },
+
   {
     id: 'finding-12',
     title: 'Elasticsearch domain publicly accessible without VPC or fine-grained access control',
@@ -531,7 +472,7 @@ export const mockFindings: Finding[] = [
 export const dashboardStats = {
   exposures: { total: 20, change: -2, critical: 18, high: 15, medium: 9, low: 1 },
   totalFindings: { total: 2500, change: -2 },
-  threats: { total: 10, change: -2, critical: 10, high: 14, medium: 1, low: 5 },
+  threats: { total: 6, change: -2, critical: 2, high: 2, medium: 1, low: 1 },
   vulnerabilities: { total: 200, change: -2, critical: 20, high: 60, medium: 100, low: 20 },
   posture: { total: 560, change: -2, critical: 10, high: 90, medium: 290, low: 170 }
 };

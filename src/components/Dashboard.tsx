@@ -18,6 +18,7 @@ import './Dashboard.css';
 import './Dashboard.css';
 import ModeSelector, { useMode } from './ModeSelector';
 import WidgetPanel from './WidgetPanel';
+import CommentsPanel from './CommentsPanel';
 interface Props { onSelectFinding: (f: Finding, childRes?: string) => void }
 type CD = { x: string[]; y: number; p: number[] };
 
@@ -238,6 +239,7 @@ export default function Dashboard({ onSelectFinding }: Props) {
 
       <FindingsList onSelectFinding={onSelectFinding} />
       <WidgetPanel open={widgetPanelOpen} onClose={() => setWidgetPanelOpen(false)} />
+      <CommentsPanel screenName="Security Hub Dashboard" />
     </SpaceBetween>
   );
 }
