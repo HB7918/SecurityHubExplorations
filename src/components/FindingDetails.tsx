@@ -33,61 +33,97 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
   const renderNode = (node: any, level = 0, isLast = false) => {
     const isPrimary = node.category === 'primary';
     const borderColor = isPrimary ? '#FF9900' : '#D13212';
-    const bgColor = isPrimary ? '#fff' : '#fff';
+    const bgColor = '#fff';
     const hasTraits = node.traitCount && node.traitCount > 0;
     
+    // AWS service icon mapping (using colored circles with service abbreviations for now)
+    const getServiceIcon = (type: string) => {
+      const iconMap: Record<string, { bg: string; text: string }> = {
+        'Lambda Function': { bg: '#FF9900', text: 'λ' },
+        'IAM Role': { bg: '#DD344C', text: 'IAM' },
+        'IAM Policy': { bg: '#DD344C', text: 'IAM' },
+        'Action': { bg: '#DD344C', text: 'A' },
+        'API Gateway': { bg: '#FF4F8B', text: 'API' },
+        'Endpoint': { bg: '#FF4F8B', text: 'EP' },
+      };
+      return iconMap[type] || { bg: '#0972D3', text: '?' };
+    };
+    
+    const icon = getServiceIcon(node.type);
+    
     return (
-      <div key={node.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: level === 0 ? 24 : 16 }}>
-        {/* Connecting line from parent */}
-        {level > 0 && (
-          <div style={{ width: 40, height: 2, background: '#D13212', marginTop: 32, flexShrink: 0 }} />
-        )}
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Node box */}
-          <div style={{ 
-            padding: '12px 16px', 
-            border: `2px solid ${borderColor}`, 
-            borderRadius: 8, 
-            background: bgColor,
-            minWidth: 280,
-            position: 'relative',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+      <div key={node.id} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+        {/* Node box */}
+        <div style={{ 
+          padding: '12px 14px', 
+          border: `2px solid ${borderColor}`, 
+          borderRadius: 10, 
+          background: bgColor,
+          minWidth: 200,
+          maxWidth: 240,
+          position: 'relative',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10
+        }}>
+          {/* AWS Service Icon */}
+          <div style={{
+            width: 36,
+            height: 36,
+            borderRadius: 6,
+            background: icon.bg,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 700,
+            flexShrink: 0
           }}>
-            <div style={{ fontSize: 11, color: '#5f6b7a', marginBottom: 4, fontWeight: 500 }}>{node.type}</div>
-            <div style={{ fontWeight: 600, fontSize: 14, color: '#16191f', wordBreak: 'break-word' }}>{node.name}</div>
-            
-            {/* Trait count badge */}
-            {hasTraits && (
-              <div style={{ 
-                position: 'absolute', 
-                top: -12, 
-                right: -12, 
-                background: '#D13212', 
-                color: '#fff', 
-                borderRadius: '50%', 
-                width: 28, 
-                height: 28, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: 13, 
-                fontWeight: 700,
-                border: '2px solid #fff',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-              }}>
-                {node.traitCount}
-              </div>
-            )}
+            {icon.text}
           </div>
           
-          {/* Children nodes */}
-          {node.children && node.children.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginLeft: 56 }}>
-              {node.children.map((child: any, idx: number) => renderNode(child, level + 1, idx === node.children.length - 1))}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: '#5f6b7a', marginBottom: 2, fontWeight: 500 }}>{node.type}</div>
+            <div style={{ fontWeight: 600, fontSize: 12, color: '#16191f', wordBreak: 'break-word', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{node.name}</div>
+          </div>
+          
+          {/* Trait count badge */}
+          {hasTraits && (
+            <div style={{ 
+              position: 'absolute', 
+              top: -10, 
+              right: -10, 
+              background: '#D13212', 
+              color: '#fff', 
+              borderRadius: '50%', 
+              width: 24, 
+              height: 24, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: 11, 
+              fontWeight: 700,
+              border: '3px solid #fff',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}>
+              {node.traitCount}
             </div>
           )}
         </div>
+        
+        {/* Connecting arrow */}
+        {node.children && node.children.length > 0 && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', margin: '0 6px' }}>
+              <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
+                <path d="M0 10H28M28 10L22 4M28 10L22 16" stroke="#879596" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            {node.children[0] && renderNode(node.children[0], level + 1, false)}
+          </>
+        )}
       </div>
     );
   };
@@ -136,8 +172,23 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
               <Box variant="p" color="text-body-secondary">
                 A visualization of AWS resources associated with this finding. The graph indicates how potential attackers could access and take control of your resources.
               </Box>
-              <div style={{ padding: 24, background: '#fafafa', borderRadius: 8, overflowX: 'auto', border: '1px solid #e9ebed' }}>
-                {finding.attackPath ? renderNode(finding.attackPath) : (
+              <div style={{ 
+                padding: 24, 
+                background: 'repeating-linear-gradient(0deg, transparent, transparent 19px, #e9ebed 19px, #e9ebed 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #e9ebed 19px, #e9ebed 20px)',
+                backgroundColor: '#fafafa',
+                borderRadius: 12, 
+                overflowX: 'auto', 
+                border: '1px solid #e9ebed',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 160
+              }}>
+                {finding.attackPath ? (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {renderNode(finding.attackPath)}
+                  </div>
+                ) : (
                   <Box color="text-body-secondary">No attack path data available</Box>
                 )}
               </div>
