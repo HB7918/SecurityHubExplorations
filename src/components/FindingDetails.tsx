@@ -30,25 +30,76 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
     setTimeout(() => { setGeneratingRemediation(false); setShowGeneratedSteps(true); }, 2000);
   };
 
-  const renderNode = (node: any, level = 0) => {
-    const color = node.category === 'primary' ? '#FF9900' : node.traitCount ? '#D13212' : '#0972D3';
+  const renderNode = (node: any, level = 0, isLast = false) => {
+    const isPrimary = node.category === 'primary';
+    const borderColor = isPrimary ? '#FF9900' : '#D13212';
+    const bgColor = isPrimary ? '#fff' : '#fff';
+    const hasTraits = node.traitCount && node.traitCount > 0;
+    
     return (
-      <div key={node.id} style={{ marginLeft: level * 40, marginTop: 10 }}>
-        <div style={{ padding: '10px 14px', border: `2px solid ${color}`, borderRadius: 8, background: '#fff', display: 'inline-block', position: 'relative', fontSize: 13 }}>
-          <div style={{ fontSize: 11, color: '#666' }}>{node.type}</div>
-          <div style={{ fontWeight: 600 }}>{node.name}</div>
-          {node.traitCount && (
-            <div style={{ position: 'absolute', top: -10, right: -10, background: '#D13212', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{node.traitCount}</div>
+      <div key={node.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: level === 0 ? 24 : 16 }}>
+        {/* Connecting line from parent */}
+        {level > 0 && (
+          <div style={{ width: 40, height: 2, background: '#D13212', marginTop: 32, flexShrink: 0 }} />
+        )}
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Node box */}
+          <div style={{ 
+            padding: '12px 16px', 
+            border: `2px solid ${borderColor}`, 
+            borderRadius: 8, 
+            background: bgColor,
+            minWidth: 280,
+            position: 'relative',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+          }}>
+            <div style={{ fontSize: 11, color: '#5f6b7a', marginBottom: 4, fontWeight: 500 }}>{node.type}</div>
+            <div style={{ fontWeight: 600, fontSize: 14, color: '#16191f', wordBreak: 'break-word' }}>{node.name}</div>
+            
+            {/* Trait count badge */}
+            {hasTraits && (
+              <div style={{ 
+                position: 'absolute', 
+                top: -12, 
+                right: -12, 
+                background: '#D13212', 
+                color: '#fff', 
+                borderRadius: '50%', 
+                width: 28, 
+                height: 28, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontSize: 13, 
+                fontWeight: 700,
+                border: '2px solid #fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              }}>
+                {node.traitCount}
+              </div>
+            )}
+          </div>
+          
+          {/* Children nodes */}
+          {node.children && node.children.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginLeft: 56 }}>
+              {node.children.map((child: any, idx: number) => renderNode(child, level + 1, idx === node.children.length - 1))}
+            </div>
           )}
         </div>
-        {node.children?.map((c: any) => renderNode(c, level + 1))}
       </div>
     );
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, width: '70%', height: '100vh', background: '#fff', boxShadow: '-4px 0 16px rgba(0,0,0,0.12)', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
-      {/* Sticky header with actions */}
+    <>
+      {/* Semi-transparent black overlay */}
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', background: 'rgba(0, 0, 0, 0.8)', zIndex: 999 }} onClick={onClose} />
+      
+      {/* Details panel */}
+      <div style={{ position: 'fixed', top: 0, right: 0, width: '70%', height: '100vh', background: '#fff', boxShadow: '-4px 0 16px rgba(0,0,0,0.12)', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+        {/* Sticky header with actions */}
       <div style={{ padding: '16px 24px', borderBottom: '1px solid #e9ebed', background: '#fff', zIndex: 10, flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}><Box variant="h4">{finding.title}</Box></div>
@@ -80,37 +131,42 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
         <SpaceBetween size="l">
-          <Container>
+          <Container header={<Header variant="h2">Potential attack path</Header>}>
             <SpaceBetween size="m">
               <Box variant="p" color="text-body-secondary">
                 A visualization of AWS resources associated with this finding. The graph indicates how potential attackers could access and take control of your resources.
               </Box>
-              <div style={{ padding: 20, background: '#fafafa', borderRadius: 8, overflowX: 'auto' }}>
+              <div style={{ padding: 24, background: '#fafafa', borderRadius: 8, overflowX: 'auto', border: '1px solid #e9ebed' }}>
                 {finding.attackPath ? renderNode(finding.attackPath) : (
                   <Box color="text-body-secondary">No attack path data available</Box>
                 )}
               </div>
-              <SpaceBetween direction="horizontal" size="m">
-                <Box fontWeight="bold" fontSize="body-s">Legend:</Box>
-                <SpaceBetween direction="horizontal" size="s">
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 14, height: 14, background: '#FF9900', borderRadius: 3, display: 'inline-block' }} /> Primary resource
+              <div>
+                <Box fontWeight="bold" fontSize="body-s" display="inline" style={{ marginRight: 16 }}>Legend:</Box>
+                <SpaceBetween direction="horizontal" size="m">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                    <span style={{ width: 16, height: 16, border: '2px solid #FF9900', borderRadius: 4, display: 'inline-block' }} />
+                    <span>Primary resource</span>
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 14, height: 14, background: '#0972D3', borderRadius: 3, display: 'inline-block' }} /> Involved resource
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                    <span style={{ width: 16, height: 16, border: '2px solid #D13212', borderRadius: 4, display: 'inline-block' }} />
+                    <span>Involved resource</span>
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 14, height: 14, background: '#D13212', borderRadius: '50%', display: 'inline-block' }} /> Contributing trait count
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                    <span style={{ width: 20, height: 20, background: '#D13212', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>3</span>
+                    <span>Contributing trait count</span>
                   </span>
                 </SpaceBetween>
-              </SpaceBetween>
-              <SpaceBetween direction="horizontal" size="xs">
-                <Box fontWeight="bold" fontSize="body-s">Trait category:</Box>
-                {ALL_TRAITS.map(t => {
-                  const isActive = activeTraitCategories.has(t as any);
-                  return <Badge key={t} color={isActive ? 'red' : 'grey'}>{t}</Badge>;
-                })}
-              </SpaceBetween>
+              </div>
+              <div>
+                <Box fontWeight="bold" fontSize="body-s" display="inline" style={{ marginRight: 12 }}>Trait category:</Box>
+                <SpaceBetween direction="horizontal" size="xs">
+                  {ALL_TRAITS.map(t => {
+                    const isActive = activeTraitCategories.has(t as any);
+                    return <Badge key={t} color={isActive ? 'red' : 'grey'}>{t}</Badge>;
+                  })}
+                </SpaceBetween>
+              </div>
               <Button variant="link" iconName="external" iconAlign="right">View details</Button>
             </SpaceBetween>
           </Container>
@@ -188,5 +244,6 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
         </SpaceBetween>
       </div>
     </div>
+    </>
   );
 }

@@ -5,7 +5,6 @@ import Container from '@cloudscape-design/components/container';
 import Box from '@cloudscape-design/components/box';
 import SegmentedControl from '@cloudscape-design/components/segmented-control';
 import Icon from '@cloudscape-design/components/icon';
-import { Line } from 'react-chartjs-2';
 import { dashboardStats } from '../data/mockData';
 import { Finding } from '../types';
 import FindingsList from './FindingsList';
@@ -17,41 +16,6 @@ interface Props {
 
 export default function Threats({ onSelectFinding }: Props) {
   const [timeRange, setTimeRange] = useState('1day');
-
-  const threatTrendData = {
-    labels: ['12am', '4am', '8am', '12pm', '4pm', '8pm', '12am'],
-    datasets: [{
-      label: 'Threats',
-      data: [8, 7, 9, 8, 6, 7, 5],
-      borderColor: '#D13212',
-      backgroundColor: '#D132121F',
-      fill: true,
-      tension: 0.3,
-      pointRadius: 0,
-      borderWidth: 2,
-    }],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: true },
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: { font: { size: 10 }, color: '#687078' },
-      },
-      y: {
-        min: 0,
-        max: 15,
-        grid: { color: '#e9ebed' },
-        ticks: { font: { size: 10 }, color: '#687078', stepSize: 5 },
-      },
-    },
-  };
 
   return (
     <SpaceBetween size="l">
