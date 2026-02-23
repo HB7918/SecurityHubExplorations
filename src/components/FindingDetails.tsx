@@ -30,7 +30,7 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
     setTimeout(() => { setGeneratingRemediation(false); setShowGeneratedSteps(true); }, 2000);
   };
 
-  const renderNode = (node: any, level = 0, isLast = false) => {
+  const renderNode = (node: any, level = 0) => {
     const isPrimary = node.category === 'primary';
     const borderColor = isPrimary ? '#FF9900' : '#D13212';
     const bgColor = '#fff';
@@ -121,7 +121,7 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
                 <path d="M0 10H28M28 10L22 4M28 10L22 16" stroke="#879596" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            {node.children[0] && renderNode(node.children[0], level + 1, false)}
+            {node.children[0] && renderNode(node.children[0], level + 1)}
           </>
         )}
       </div>
@@ -193,7 +193,7 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
                 )}
               </div>
               <div>
-                <Box fontWeight="bold" fontSize="body-s" display="inline" style={{ marginRight: 16 }}>Legend:</Box>
+                <span style={{ fontWeight: 'bold', fontSize: 14, marginRight: 16, display: 'inline-block' }}>Legend:</span>
                 <SpaceBetween direction="horizontal" size="m">
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                     <span style={{ width: 16, height: 16, border: '2px solid #FF9900', borderRadius: 4, display: 'inline-block' }} />
@@ -210,7 +210,7 @@ export default function FindingDetails({ finding, primaryResource, onClose }: Fi
                 </SpaceBetween>
               </div>
               <div>
-                <Box fontWeight="bold" fontSize="body-s" display="inline" style={{ marginRight: 12 }}>Trait category:</Box>
+                <span style={{ fontWeight: 'bold', fontSize: 14, marginRight: 12, display: 'inline-block' }}>Trait category:</span>
                 <SpaceBetween direction="horizontal" size="xs">
                   {ALL_TRAITS.map(t => {
                     const isActive = activeTraitCategories.has(t as any);
