@@ -1,0 +1,12 @@
+.severity-popover-trigger [class*="awsui_trigger-inner"] {
+  color: inherit !important;
+  text-decoration-color: inherit !important;
+  border-bottom-color: inherit !important;
+}
+
+.severity-popover-trigger [class*="awsui_trigger-inner"] button,
+.severity-popover-trigger [class*="awsui_trigger-inner"] span {
+  color: inherit !important;
+  text-decoration-color: inherit !important;
+  border-bottom-color: inherit !important;
+}

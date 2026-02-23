@@ -1,0 +1,23 @@
+.saved-filters-btn button {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 50% !important;
+  border: 2px solid #0972d3 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #0972d3 !important;
+}
+
+.saved-filters-btn button svg {
+  fill: #0972d3 !important;
+  color: #0972d3 !important;
+}
+
+.clear-selections-btn button {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}

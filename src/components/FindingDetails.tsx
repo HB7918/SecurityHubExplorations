@@ -1,0 +1,192 @@
+import { useState } from 'react';
+import Link from '@cloudscape-design/components/link';
+import AssignDropdown, { User } from './AssignDropdown';
+import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
+import Header from '@cloudscape-design/components/header';
+import SpaceBetween from '@cloudscape-design/components/space-between';
+import Container from '@cloudscape-design/components/container';
+import Box from '@cloudscape-design/components/box';
+import Badge from '@cloudscape-design/components/badge';
+import Button from '@cloudscape-design/components/button';
+import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
+import StatusIndicator from '@cloudscape-design/components/status-indicator';
+import { Finding } from '../types';
+
+interface FindingDetailsProps {
+  finding: Finding; primaryResource?: string;
+  onClose: () => void;
+}
+
+const ALL_TRAITS = ['Reachability', 'Sensitive Data', 'Vulnerability', 'Misconfiguration', 'Assumability'];
+
+export default function FindingDetails({ finding, primaryResource, onClose }: FindingDetailsProps) {
+  const [generatingRemediation, setGeneratingRemediation] = useState(false);
+  const [assignee, setAssignee] = useState<User | null>(null);
+  const [showGeneratedSteps, setShowGeneratedSteps] = useState(false);
+  const activeTraitCategories = new Set(finding.traits.map(t => t.category));
+
+  const handleGenerateRemediation = () => {
+    setGeneratingRemediation(true);
+    setTimeout(() => { setGeneratingRemediation(false); setShowGeneratedSteps(true); }, 2000);
+  };
+
+  const renderNode = (node: any, level = 0) => {
+    const color = node.category === 'primary' ? '#FF9900' : node.traitCount ? '#D13212' : '#0972D3';
+    return (
+      <div key={node.id} style={{ marginLeft: level * 40, marginTop: 10 }}>
+        <div style={{ padding: '10px 14px', border: `2px solid ${color}`, borderRadius: 8, background: '#fff', display: 'inline-block', position: 'relative', fontSize: 13 }}>
+          <div style={{ fontSize: 11, color: '#666' }}>{node.type}</div>
+          <div style={{ fontWeight: 600 }}>{node.name}</div>
+          {node.traitCount && (
+            <div style={{ position: 'absolute', top: -10, right: -10, background: '#D13212', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{node.traitCount}</div>
+          )}
+        </div>
+        {node.children?.map((c: any) => renderNode(c, level + 1))}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ position: 'fixed', top: 0, right: 0, width: '70%', height: '100vh', background: '#fff', boxShadow: '-4px 0 16px rgba(0,0,0,0.12)', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+      {/* Sticky header with actions */}
+      <div style={{ padding: '16px 24px', borderBottom: '1px solid #e9ebed', background: '#fff', zIndex: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <div style={{ flex: 1, minWidth: 0, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}><Box variant="h4">{finding.title}</Box></div>
+          <SpaceBetween direction="horizontal" size="xs">
+            <Button iconName="refresh" />
+            <Button>Comment</Button>
+            <Button>Create ticket</Button>
+                <AssignDropdown assignee={assignee} onAssign={setAssignee} />
+            <ButtonDropdown items={[
+              { text: 'View JSON', id: 'json' },
+              { text: 'Update severity', id: 'sev' },
+              { text: 'Update status', id: 'status' },
+              { text: 'Export', id: 'export' }
+            ]}>Update</ButtonDropdown>
+            <Button iconName="copy" />
+            <Button iconName="close" variant="icon" onClick={onClose} />
+          </SpaceBetween>
+        </div>
+      </div>
+      {assignee && (
+        <div style={{ padding: "8px 24px", background: "#f0f7ff", borderBottom: "1px solid #e9ebed", fontSize: 13, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <span style={{ color: "#5f6b7a" }}>Assigned to:</span>
+          <span style={{ width: 22, height: 22, borderRadius: "50%", background: assignee.color, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 600 }}>{assignee.initials}</span>
+          <span style={{ fontWeight: 600 }}>{assignee.name}</span>
+          <span style={{ color: "#5f6b7a" }}>{assignee.email}</span>
+        </div>
+      )}
+
+      {/* Scrollable content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        <SpaceBetween size="l">
+          <Container>
+            <SpaceBetween size="m">
+              <Box variant="p" color="text-body-secondary">
+                A visualization of AWS resources associated with this finding. The graph indicates how potential attackers could access and take control of your resources.
+              </Box>
+              <div style={{ padding: 20, background: '#fafafa', borderRadius: 8, overflowX: 'auto' }}>
+                {finding.attackPath ? renderNode(finding.attackPath) : (
+                  <Box color="text-body-secondary">No attack path data available</Box>
+                )}
+              </div>
+              <SpaceBetween direction="horizontal" size="m">
+                <Box fontWeight="bold" fontSize="body-s">Legend:</Box>
+                <SpaceBetween direction="horizontal" size="s">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 14, height: 14, background: '#FF9900', borderRadius: 3, display: 'inline-block' }} /> Primary resource
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 14, height: 14, background: '#0972D3', borderRadius: 3, display: 'inline-block' }} /> Involved resource
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 14, height: 14, background: '#D13212', borderRadius: '50%', display: 'inline-block' }} /> Contributing trait count
+                  </span>
+                </SpaceBetween>
+              </SpaceBetween>
+              <SpaceBetween direction="horizontal" size="xs">
+                <Box fontWeight="bold" fontSize="body-s">Trait category:</Box>
+                {ALL_TRAITS.map(t => {
+                  const isActive = activeTraitCategories.has(t as any);
+                  return <Badge key={t} color={isActive ? 'red' : 'grey'}>{t}</Badge>;
+                })}
+              </SpaceBetween>
+              <Button variant="link" iconName="external" iconAlign="right">View details</Button>
+            </SpaceBetween>
+          </Container>
+
+
+          <Container header={<Header variant="h2" actions={<Button onClick={handleGenerateRemediation} loading={generatingRemediation} iconName="gen-ai">Generate real-time remediation steps</Button>}>Remediation</Header>}>
+            <SpaceBetween size="m">
+              <Box variant="h4">Recommended actions:</Box>
+              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                {finding.remediationSteps.map((step, i) => (
+                  <li key={i} style={{ marginBottom: 6, lineHeight: 1.6 }}>{step}</li>
+                ))}
+              </ul>
+              <Box variant="h4">Related documentation</Box>
+              <ul style={{ margin: 0, paddingLeft: 20, listStyle: "none" }}>
+                <li style={{ marginBottom: 4 }}><Link href="https://docs.aws.amazon.com/securityhub/latest/userguide/" external>AWS Security Hub User Guide</Link></li>
+                <li style={{ marginBottom: 4 }}><Link href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html" external>IAM Security Best Practices</Link></li>
+                <li style={{ marginBottom: 4 }}><Link href="https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/" external>AWS Well-Architected Security Pillar</Link></li>
+              </ul>
+              <Box variant="h4">Suggested people to contact</Box>
+              <div style={{ fontSize: 13 }}>
+                <div style={{ display: "flex", gap: 8, padding: "4px 0" }}><Box color="text-body-secondary" fontWeight="bold">Possible resource owner:</Box><Link href="#">jsmith@example.com</Link></div>
+                <div style={{ display: "flex", gap: 8, padding: "4px 0" }}><Box color="text-body-secondary" fontWeight="bold">Most used by:</Box><Link href="#">devops-team@example.com</Link>, <Link href="#">platform-eng@example.com</Link></div>
+                <div style={{ display: "flex", gap: 8, padding: "4px 0" }}><Box color="text-body-secondary" fontWeight="bold">Security contact:</Box><Link href="#">secops@example.com</Link></div>
+              </div>
+              {generatingRemediation && <StatusIndicator type="loading">Generating remediation steps...</StatusIndicator>}
+              {showGeneratedSteps && (
+                <SpaceBetween size="s">
+                  <Box variant="h4" color="text-status-success">AI-Generated Remediation Steps</Box>
+                  <ol style={{ margin: 0, paddingLeft: 20 }}>
+                    <li style={{ marginBottom: 6 }}>Immediately restrict access by implementing AWS IAM authorization</li>
+                    <li style={{ marginBottom: 6 }}>Run security scan to identify specific vulnerabilities</li>
+                    <li style={{ marginBottom: 6 }}>Update all dependencies to latest secure versions</li>
+                    <li style={{ marginBottom: 6 }}>Implement AWS WAF rules to protect endpoints</li>
+                    <li style={{ marginBottom: 6 }}>Enable CloudWatch alarms for unauthorized access attempts</li>
+                    <li style={{ marginBottom: 6 }}>Review and apply principle of least privilege</li>
+                  </ol>
+                </SpaceBetween>
+              )}
+            </SpaceBetween>
+          </Container>
+          <Container header={<Header variant="h2" counter={`(${finding.similarFindings.length})`}>Resource Details</Header>}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              {[...finding.similarFindings]
+                .sort((a, b) => (a.resource === primaryResource ? -1 : b.resource === primaryResource ? 1 : 0))
+                .map(sf => {
+                  const isPrimary = sf.resource === primaryResource;
+                  return (
+                    <div key={sf.id} style={{ border: '1px solid #e9ebed', borderRadius: 8, padding: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <Box fontWeight="bold" fontSize="body-m">{sf.resource}</Box>
+                        {isPrimary && <Badge color="blue">Primary</Badge>}
+                      </div>
+                      <KeyValuePairs columns={2} items={[
+                        { label: 'Type', value: finding.resourceType },
+                        { label: 'Account', value: sf.account },
+                        { label: 'Region', value: sf.region },
+                        { label: 'Age', value: finding.age },
+                      ]} />
+                    </div>
+                  );
+                })}
+            </div>
+          </Container>
+          <Container header={<Header variant="h2">Trait Details</Header>}>
+            <SpaceBetween size="s">
+              {finding.traits.map(trait => (
+                <div key={trait.id} style={{ padding: '10px 14px', background: '#fef2f2', borderRadius: 6, borderLeft: '3px solid #D13212' }}>
+                  <Box fontWeight="bold" color="text-status-error">{trait.name}</Box>
+                  <Box color="text-body-secondary" fontSize="body-s">Category: {trait.category}</Box>
+                </div>
+              ))}
+            </SpaceBetween>
+          </Container>
+        </SpaceBetween>
+      </div>
+    </div>
+  );
+}
