@@ -6,7 +6,6 @@ import Box from '@cloudscape-design/components/box';
 import Badge from '@cloudscape-design/components/badge';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
-import TextFilter from '@cloudscape-design/components/text-filter';
 import Select from '@cloudscape-design/components/select';
 import Table from '@cloudscape-design/components/table';
 import Link from '@cloudscape-design/components/link';
@@ -35,7 +34,6 @@ const severityRank: Record<string, number> = { Critical: 0, High: 1, Medium: 2, 
 type SortField = 'title' | 'type' | 'severity' | 'count' | 'impact';
 export default function FindingsList({ onSelectFinding, filterType, statusFilter: externalStatusFilter, severityFilter: externalSeverityFilter, title }: FindingsListProps) {
   const [selectedTab, setSelectedTab] = useState('all');
-  const [filterText, setFilterText] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [severityFilter, setSeverityFilter] = useState<any>(null);

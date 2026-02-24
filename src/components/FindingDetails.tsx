@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Link from '@cloudscape-design/components/link';
 import AssignDropdown, { User } from './AssignDropdown';
-import KeyValuePairs from '@cloudscape-design/components/key-value-pairs';
 import Header from '@cloudscape-design/components/header';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Container from '@cloudscape-design/components/container';
@@ -10,11 +9,8 @@ import Badge from '@cloudscape-design/components/badge';
 import Button from '@cloudscape-design/components/button';
 import ButtonDropdown from '@cloudscape-design/components/button-dropdown';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import Icon from '@cloudscape-design/components/icon';
 import { Finding } from '../types';
-import SeverityBadge from './SeverityBadge';
 import { traitPaths } from './TraitBadges';
-import CommentsPanel from './CommentsPanel';
 
 interface FindingDetailsProps {
   finding: Finding; primaryResource?: string;
