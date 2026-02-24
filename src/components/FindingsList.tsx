@@ -43,6 +43,28 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
   const [sortField, setSortField] = useState<SortField | null>('impact');
   const [sortDesc, setSortDesc] = useState(true);
   const [quickFilter, setQuickFilter] = useState<string | null>(null);
+  const [savedFilter, setSavedFilter] = useState<any>(null);
+
+  const filterPresets: Record<string, { severity: any; status: any }> = {
+    'r1': { severity: { label: 'Critical', value: 'critical' }, status: { label: 'New', value: 'new' } },
+    'r2': { severity: { label: 'High', value: 'high' }, status: null },
+    'r3': { severity: null, status: { label: 'In Progress', value: 'in-progress' } },
+    'f1': { severity: { label: 'Critical', value: 'critical' }, status: null },
+    'f2': { severity: { label: 'High', value: 'high' }, status: null },
+    'f3': { severity: null, status: { label: 'New', value: 'new' } },
+    'f4': { severity: null, status: null },
+    'f5': { severity: null, status: null },
+  };
+
+  const handleSavedFilterChange = (opt: any) => {
+    setSavedFilter(opt);
+    const preset = filterPresets[opt.value];
+    if (preset) {
+      setSeverityFilter(preset.severity);
+      setStatusFilter(preset.status);
+      setShowFilters(true);
+    }
+  };
   const toggleExpanded = (id: string) => {
     const next = new Set(expandedItems);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -99,12 +121,14 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
     </span>
   );
   return (
-    <Container header={<div style={{ fontSize: 16, fontWeight: 700 }}>{title || 'Priority hub'} <span style={{ fontWeight: 400, color: "#5f6b7a" }}>({sortedFindings.length})</span></div>}>
+    <Container header={<div style={{ fontSize: 16, fontWeight: 700 }}>{title || 'Priority hub'} <span style={{ fontWeight: 400, color: "#5f6b7a" }}>({sortedFindings.reduce((sum, f) => sum + f.similarFindings.length, 0)})</span></div>}>
       <SpaceBetween size="m">
         {!filterType && (
           <>
-            <SpaceBetween direction="horizontal" size="xs">
-              <div onClick={() => setShowFilters(!showFilters)} role="button" tabIndex={0} aria-label="Toggle filters" style={{ width: 32, height: 32, minWidth: 32, maxWidth: 32, minHeight: 32, maxHeight: 32, borderRadius: "50%", border: "2px solid #0972d3", background: showFilters ? "#0972d3" : "#fff", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }}><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M1 2h14l-5 6v5l-4 2V8L1 2z" stroke={showFilters ? "#fff" : "#0972d3"} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeLinecap="round" /></svg></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div onClick={() => setShowFilters(!showFilters)} role="button" tabIndex={0} aria-label="Toggle filters" style={{ width: 32, height: 32, minWidth: 32, maxWidth: 32, minHeight: 32, maxHeight: 32, borderRadius: "50%", border: showFilters ? "2px solid #0972d3" : "1px solid #aab7b8", background: showFilters ? "#0972d3" : "#fff", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }}>
+                <Icon name={showFilters ? 'caret-up-filled' : 'caret-down-filled'} variant={showFilters ? 'inverted' : 'normal'} />
+              </div>
               <SegmentedControl
                 selectedId={selectedTab}
                 onChange={({ detail }) => setSelectedTab(detail.selectedId)}
@@ -114,20 +138,47 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                   { text: 'Threats', id: 'threats' },
                 ]}
               />
-              <div style={{ flex: 1, minWidth: 600 }}>
-                <TextFilter filteringText={filterText} filteringPlaceholder="Search by keywords" onChange={({ detail }) => setFilterText(detail.filteringText)} />
+              <div style={{ minWidth: 240 }}>
+                <Select
+                  selectedOption={savedFilter}
+                  onChange={({ detail }) => handleSavedFilterChange(detail.selectedOption)}
+                  placeholder="Saved & recent filters"
+                  options={[
+                    {
+                      label: 'From last 24hrs', options: [
+                        { label: '⏱ Critical new findings', value: 'r1' },
+                        { label: '⏱ High severity threats', value: 'r2' },
+                        { label: '⏱ In-progress findings', value: 'r3' },
+                      ]
+                    },
+                    {
+                      label: 'Saved filters', options: [
+                        { label: 'Critical exposures - last 7 days', value: 'f1' },
+                        { label: 'High severity threats - production', value: 'f2' },
+                        { label: 'Unresolved findings - us-east-1', value: 'f3' },
+                        { label: 'All open exposures by account', value: 'f4' },
+                        { label: 'PII-related findings', value: 'f5' },
+                      ]
+                    },
+                  ]}
+                  expandToViewport
+                />
               </div>
-              <span className="saved-filters-btn"><ButtonDropdown variant="icon" expandToViewport items={[{ id: "saved", text: "Saved filters", items: [{ text: "Critical exposures - last 7 days", id: "f1" }, { text: "High severity threats - production", id: "f2" }, { text: "Unresolved findings - us-east-1", id: "f3" }, { text: "All open exposures by account", id: "f4" }, { text: "PII-related findings", id: "f5" }] }]} ariaLabel="Saved filters" /></span>
-            </SpaceBetween>
+              <span style={{ borderLeft: "1px solid #d5dbdb", height: 24, display: "inline-block" }} />
+              {["Externally exposed resources", "Public S3 buckets"].map(label => (
+                <span key={label} onClick={() => setQuickFilter(quickFilter === label ? null : label)} style={{ padding: "4px 12px", borderRadius: 16, fontSize: 13, cursor: "pointer", border: quickFilter === label ? "2px solid #0972d3" : "1px solid #aab7b8", background: quickFilter === label ? "#f0f7ff" : "#fff", color: quickFilter === label ? "#0972d3" : "#16191f", fontWeight: quickFilter === label ? 600 : 400, userSelect: "none", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center" }}>{label}</span>
+              ))}
+            </div>
             {showFilters && (
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-                {["All externally exposed resources", "All public S3 buckets"].map(label => (<span key={label} onClick={() => setQuickFilter(quickFilter === label ? null : label)} style={{ padding: "4px 12px", borderRadius: 16, fontSize: 13, cursor: "pointer", border: quickFilter === label ? "2px solid #0972d3" : "1px solid #aab7b8", background: quickFilter === label ? "#f0f7ff" : "#fff", color: quickFilter === label ? "#0972d3" : "#16191f", fontWeight: quickFilter === label ? 600 : 400, userSelect: "none" }}>{label}</span>))}<span style={{ borderLeft: "1px solid #d5dbdb", height: 20, display: "inline-block", margin: "0 4px" }} /><Box fontWeight="bold" fontSize="body-s">Filter by:</Box>
+                <Box fontWeight="bold" fontSize="body-s">Filter by:</Box>
                 <Select selectedOption={severityFilter} onChange={({ detail }) => setSeverityFilter(detail.selectedOption)} placeholder="Select severity"
                   options={[{ label: 'Critical', value: 'critical' }, { label: 'High', value: 'high' }, { label: 'Medium', value: 'medium' }, { label: 'Low', value: 'low' }]} />
                 <Select selectedOption={statusFilter} onChange={({ detail }) => setStatusFilter(detail.selectedOption)} placeholder="Select status"
                   options={[{ label: 'New', value: 'new' }, { label: 'In Progress', value: 'in-progress' }, { label: 'Resolved', value: 'resolved' }]} />
                 <Button>+ Add filter</Button>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span className="clear-selections-btn"><Button variant="link">Clear selections</Button></span><span style={{ borderLeft: "1px solid #d5dbdb", height: 20, display: "inline-block" }} /><Button>Save filter</Button></div></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span className="clear-selections-btn"><Button variant="link" onClick={() => { setSeverityFilter(null); setStatusFilter(null); setSavedFilter(null); setQuickFilter(null); setSelectedTab('all'); setShowFilters(false); }}>Clear selections</Button></span><span style={{ borderLeft: "1px solid #d5dbdb", height: 20, display: "inline-block" }} /><ButtonDropdown variant="normal" mainAction={{ text: 'Save filter', onClick: () => {} }} items={[{ text: 'Update filter', id: 'update' }, { text: 'Delete filter', id: 'delete' }]} onItemClick={() => {}} /></div>
+              </div>
             )}
           </>
         )}

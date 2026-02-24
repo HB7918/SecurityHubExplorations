@@ -42,4 +42,5 @@ export interface AttackPathNode {
   children: AttackPathNode[];
   traitCount?: number;
   category?: string;
+  endpoint?: string;
 }

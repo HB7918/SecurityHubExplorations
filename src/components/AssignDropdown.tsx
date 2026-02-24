@@ -45,7 +45,7 @@ export default function AssignDropdown({ assignee, onAssign }: Props) {
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <Button onClick={() => setOpen(!open)}>Assign</Button>
+      <Button iconName="user-profile" onClick={() => setOpen(!open)}>Assign</Button>
       {open && (
         <div style={{
           position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 1200,

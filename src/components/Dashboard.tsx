@@ -1,7 +1,7 @@
-import { useState, ReactNode } from 'react';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js';
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
+import { useState, useEffect, useRef, ReactNode } from 'react';
+import { Line, Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend, ArcElement } from 'chart.js';
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend, ArcElement);
 import Header from '@cloudscape-design/components/header';
 import SpaceBetween from '@cloudscape-design/components/space-between';
 import Container from '@cloudscape-design/components/container';
@@ -10,11 +10,11 @@ import SegmentedControl from '@cloudscape-design/components/segmented-control';
 import Button from '@cloudscape-design/components/button';
 import Icon from '@cloudscape-design/components/icon';
 import ExpandableSection from '@cloudscape-design/components/expandable-section';
+import StatusIndicator from '@cloudscape-design/components/status-indicator';
 import { dashboardStats as ds } from '../data/mockData';
 import { Finding } from '../types';
 import FindingsList from './FindingsList';
 import SeverityBadge from './SeverityBadge';
-import './Dashboard.css';
 import './Dashboard.css';
 import ModeSelector, { useMode } from './ModeSelector';
 import WidgetPanel from './WidgetPanel';
@@ -30,34 +30,95 @@ const TD: Record<string, CD> = {
   '1year': { x: ['Mar','May','Jul','Sep','Nov','Jan'], y: 40, p: [38,34,30,25,20,14] },
 };
 
-// Removed unused RES constant
+const RD: Record<string, number[]> = {
+  '1day': [2,4,6,8,10,14,18],
+  '1week': [3,5,8,11,14,17,20],
+  '1month': [4,10,16,22],
+  '6months': [5,10,16,20,26,30],
+  '1year': [4,10,18,24,30,36],
+};
 
-function Chrt({ d, c, h = 50 }: { d: CD; c: string; h?: number }) {
+function Chrt({ d, c, h = 50, resData }: { d: CD; c: string; h?: number; resData?: number[] }) {
+  const datasets: any[] = [{
+    label: 'Open',
+    data: d.p,
+    borderColor: c,
+    backgroundColor: c + '1F',
+    fill: true,
+    tension: 0.3,
+    pointRadius: 1,
+    pointBackgroundColor: c,
+    borderWidth: 2,
+  }];
+  if (resData) {
+    datasets.push({
+      label: 'Resolved',
+      data: resData,
+      borderColor: '#16b378',
+      backgroundColor: 'transparent',
+      fill: false,
+      tension: 0.3,
+      pointRadius: 1,
+      pointBackgroundColor: '#16b378',
+      borderWidth: 2,
+    });
+  }
   return (
     <div style={{ height: h, width: '100%' }}>
       <Line
-        data={{
-          labels: d.x,
-          datasets: [{
-            data: d.p,
-            borderColor: c,
-            backgroundColor: c + '1F',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 0,
-            borderWidth: 1.5,
-          }],
-        }}
+        data={{ labels: d.x, datasets }}
         options={{
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { tooltip: { enabled: true }, legend: { display: false } },
+          plugins: {
+            tooltip: { enabled: true },
+            legend: { display: !!resData, position: 'bottom', align: 'end' as const, labels: { boxWidth: 8, font: { size: 10 }, padding: 6 } },
+          },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#687078', maxRotation: 0 } },
-            y: { min: 0, max: d.y, grid: { color: '#e9ebed' }, ticks: { font: { size: 9 }, color: '#687078', stepSize: Math.round(d.y / 2) } },
+            x: {
+              display: true,
+              grid: { display: true, color: '#f0f0f0' },
+              ticks: { font: { size: 9 }, color: '#687078', maxRotation: 0 },
+              border: { display: true, color: '#d5dbdb' },
+            },
+            y: {
+              display: true,
+              min: 0,
+              max: d.y,
+              grid: { display: true, color: '#e9ebed' },
+              ticks: { font: { size: 9 }, color: '#687078', stepSize: Math.round(d.y / 4) },
+              border: { display: true, color: '#d5dbdb' },
+            },
           },
         }}
       />
+    </div>
+  );
+}
+
+function CoveragePie({ pct, label, by, color }: { pct: number; label: string; by: string; color: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+      <div style={{ width: 52, height: 52, position: 'relative' }}>
+        <Doughnut
+          data={{
+            datasets: [{
+              data: [pct, 100 - pct],
+              backgroundColor: [color, '#e9ebed'],
+              borderWidth: 0,
+            }],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '70%',
+            plugins: { tooltip: { enabled: false }, legend: { display: false } },
+          }}
+        />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, fontWeight: 700, color: '#16191f' }}>{pct}%</div>
+      </div>
+      <div style={{ fontSize: 10, fontWeight: 600, textAlign: 'center', lineHeight: '1.3', color: '#16191f', minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 80, whiteSpace: 'pre-line' }}>{label}</div>
+      <div style={{ fontSize: 9, color: '#5f6b7a', textAlign: 'center' }}>{by}</div>
     </div>
   );
 }
@@ -68,12 +129,14 @@ const IB = () => (
   </span>
 );
 
-function NWT({ v, c, tc, tr }: { v: string; c: string; tc?: string; tr: string }) {
+function NWT({ v, c, tr }: { v: string; c: string; tr: string }) {
+  const td = TD[tr] || TD['1day'];
+  const rd = RD[tr] || RD['1day'];
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <Box fontSize="display-l" fontWeight="bold" color={tc as any || undefined}>{v}</Box>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <Chrt d={TD[tr] || TD['1day']} c={c} h={60} />
+      <Box fontSize="display-l" fontWeight="heavy" color="text-status-info">{v}</Box>
+      <div style={{ flex: 1, minWidth: 0, height: 100 }}>
+        <Chrt d={td} c={c} h={100} resData={rd} />
       </div>
     </div>
   );
@@ -81,7 +144,91 @@ function NWT({ v, c, tc, tr }: { v: string; c: string; tc?: string; tr: string }
 
 const GH = () => <span style={{ cursor: 'grab', color: '#687078' }}><Icon name="drag-indicator" size="normal" /></span>;
 const WT = ({ children }: { children: ReactNode }) => <Box variant="h5">{children}</Box>;
-const SH = 134;
+
+const NEWS_ITEMS = [
+  { title: 'AWS patches critical IAM vulnerability', source: 'SecurityWeek' },
+  { title: 'New S3 bucket exposure scanner released', source: 'The Hacker News' },
+  { title: 'Cloud misconfigurations up 40% in Q4', source: 'Dark Reading' },
+  { title: 'Zero-day in Lambda runtime discovered', source: 'BleepingComputer' },
+  { title: 'CISA warns of active cloud exploits', source: 'CyberScoop' },
+  { title: 'Best practices for ECS security posture', source: 'AWS Blog' },
+  { title: 'API Gateway auth bypass techniques', source: 'PortSwigger' },
+  { title: 'CloudTrail logging gaps exploited in wild', source: 'Recorded Future' },
+];
+
+function NewsTicker() {
+  const [idx, setIdx] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [fade, setFade] = useState(true);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % NEWS_ITEMS.length);
+        setFade(true);
+      }, 150);
+    }, 4000);
+    return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const item = NEWS_ITEMS[idx];
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+          padding: '4px 10px', borderRadius: 4, background: '#ffffff',
+          border: '1px solid #d5dbdb', fontSize: 12, whiteSpace: 'nowrap',
+          transition: 'opacity 0.15s', opacity: fade ? 1 : 0,
+          width: 360, overflow: 'hidden',
+        }}
+      >
+        <Icon name="status-info" size="small" />
+        <span style={{ fontWeight: 600, color: '#0972d3' }}>{item.source}</span>
+        <span style={{ color: '#16191f', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</span>
+        <Icon name="caret-down-filled" size="small" />
+      </div>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 1000,
+          background: '#fff', border: '1px solid #d5dbdb', borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 380, maxHeight: 320, overflow: 'auto',
+        }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid #eaeded' }}>
+            <Box variant="h5">Cloud security news stories</Box>
+            <Box fontSize="body-s" color="text-body-secondary">From sources across the web</Box>
+          </div>
+          {NEWS_ITEMS.map((n, i) => (
+            <div key={i} style={{
+              padding: '8px 14px', borderBottom: i < NEWS_ITEMS.length - 1 ? '1px solid #f2f3f3' : 'none',
+              cursor: 'pointer',
+            }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#f2f8fd')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#0972d3', marginBottom: 2, fontSize: 12 }}>
+                <Icon name="external" size="small" /> <span style={{ fontWeight: 600 }}>{n.source}</span>
+              </div>
+              <div style={{ fontSize: 12, color: '#16191f' }}>{n.title}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard({ onSelectFinding }: Props) {
   const [tr, setTr] = useState('1day');
@@ -92,9 +239,9 @@ export default function Dashboard({ onSelectFinding }: Props) {
   const sw = (id: string, ct: ReactNode) => (
     <div key={id} className="widget-compact">
       <Container>
-        <div style={{ height: SH, display: 'flex', gap: 8, alignItems: 'flex-start', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <div style={{ paddingTop: 1 }}><GH /></div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>{ct}</div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>{ct}</div>
         </div>
       </Container>
     </div>
@@ -122,16 +269,19 @@ export default function Dashboard({ onSelectFinding }: Props) {
         headerActions={<Button variant="inline-link">Export highlights</Button>}
         expanded={we} onChange={({ detail }) => setWe(detail.expanded)}>
         <SpaceBetween size="m">
-          <SegmentedControl selectedId={tr} onChange={({ detail }) => setTr(detail.selectedId)} options={[
-            { text: '1 day', id: '1day' }, { text: '1 week', id: '1week' },
-            { text: '1 month', id: '1month' }, { text: '6 months', id: '6months' },
-            { text: '1 year', id: '1year' }
-          ]} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <SegmentedControl selectedId={tr} onChange={({ detail }) => setTr(detail.selectedId)} options={[
+              { text: '1 day', id: '1day' }, { text: '1 week', id: '1week' },
+              { text: '1 month', id: '1month' }, { text: '6 months', id: '6months' },
+              { text: '1 year', id: '1year' }
+            ]} />
+            <NewsTicker />
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
             {sw('exposures', <>
               <WT>Exposures <IB /></WT>
-              <NWT v="20" c="#870303" tc="text-status-info" tr={tr} />
+              <NWT v="20" c="#870303" tr={tr} />
               <SpaceBetween direction="horizontal" size="xs">
                 <SeverityBadge severity="Critical" label={`C ${ds.exposures.critical}`} />
                 <SeverityBadge severity="High" label={`H ${ds.exposures.high}`} />
@@ -151,7 +301,7 @@ export default function Dashboard({ onSelectFinding }: Props) {
             </>)}
             {sw('vulns', <>
               <WT>Vulnerabilities <IB /></WT>
-              <NWT v="200" c="#ce3311" tc="text-status-info" tr={tr} />
+              <NWT v="200" c="#ce3311" tr={tr} />
               <SpaceBetween direction="horizontal" size="xs">
                 <SeverityBadge severity="Critical" label={`C ${ds.vulnerabilities.critical}`} />
                 <SeverityBadge severity="High" label={`H ${ds.vulnerabilities.high}`} />
@@ -169,30 +319,6 @@ export default function Dashboard({ onSelectFinding }: Props) {
                 <SeverityBadge severity="Low" label={`L ${ds.posture.low}`} />
               </SpaceBetween>
             </>)}
-            {sw('coverage', <>
-              <WT>Security coverage</WT>
-              <div style={{ fontSize: 12, marginTop: 4 }}>
-                {[
-                  { name: 'Vulnerability management', by: 'Amazon Inspector', pct: 100 },
-                  { name: 'Threat analytics', by: 'Amazon GuardDuty', pct: 100 },
-                  { name: 'Sensitive data discovery', by: 'Amazon Macie', pct: 85 },
-                  { name: 'Posture management', by: 'Security Hub CSPM', pct: 100 },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: '3px 0', alignItems: 'center', borderBottom: '1px solid #f0f0f0' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 12 }}>{item.name}</div>
-                      <div style={{ color: '#5f6b7a', fontSize: 11 }}>By {item.by}</div>
-                    </div>
-                    <div>
-                      <div style={{ background: '#e9ebed', borderRadius: 4, height: 8, width: '100%' }}>
-                        <div style={{ background: '#16b378', borderRadius: 4, height: 8, width: `${item.pct}%` }} />
-                      </div>
-                      <div style={{ fontSize: 10, color: '#5f6b7a' }}>{item.pct}% covered</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>)}
             {sw('sensitive', <>
               <WT>Sensitive data <IB /></WT>
               <NWT v="85" c="#9b59b6" tr={tr} />
@@ -203,36 +329,16 @@ export default function Dashboard({ onSelectFinding }: Props) {
                 <SeverityBadge severity="Low" label={`L ${ds.sensitiveData.low}`} />
               </SpaceBetween>
             </>)}
-          </div>
-
-          <div className="widget-compact">
-            <Container>
-              <SpaceBetween size="s">
-                <div>
-                  <Box variant="h5">Cloud security news stories</Box>
-                  <Box fontSize="body-s" color="text-body-secondary">From sources across the web</Box>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
-                  {[
-                    { title: 'AWS patches critical IAM vulnerability', source: 'SecurityWeek' },
-                    { title: 'New S3 bucket exposure scanner released', source: 'The Hacker News' },
-                    { title: 'Cloud misconfigurations up 40% in Q4', source: 'Dark Reading' },
-                    { title: 'Zero-day in Lambda runtime discovered', source: 'BleepingComputer' },
-                    { title: 'CISA warns of active cloud exploits', source: 'CyberScoop' },
-                    { title: 'Best practices for ECS security posture', source: 'AWS Blog' },
-                    { title: 'API Gateway auth bypass techniques', source: 'PortSwigger' },
-                    { title: 'CloudTrail logging gaps exploited in wild', source: 'Recorded Future' },
-                  ].map((item, i) => (
-                    <div key={i} style={{ fontSize: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#0972d3', marginBottom: 2 }}>
-                        <Icon name="external" size="small" /> <span style={{ fontWeight: 600 }}>{item.source}</span>
-                      </div>
-                      <Box color="text-body-secondary" fontSize="body-s">{item.title}</Box>
-                    </div>
-                  ))}
-                </div>
-              </SpaceBetween>
-            </Container>
+            {sw('coverage', <>
+              <WT>Security coverage</WT>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginTop: 4 }}>
+                <CoveragePie pct={92} label="Vulnerability management" by="Amazon Inspector" color="#16b378" />
+                <CoveragePie pct={78} label="Threat analytics" by="Amazon GuardDuty" color="#16b378" />
+                <CoveragePie pct={64} label={"Sensitive\ndata discovery"} by="Amazon Macie" color="#16b378" />
+                <CoveragePie pct={88} label="Posture management" by="Security Hub CSPM" color="#16b378" />
+              </div>
+              <div style={{ fontSize: 13 }}><StatusIndicator type="success">Configure Macie in remaining 32% accounts to become 20% more secure</StatusIndicator></div>
+            </>)}
           </div>
         </SpaceBetween>
       </ExpandableSection>
