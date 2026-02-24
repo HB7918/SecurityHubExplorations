@@ -11,7 +11,7 @@ import Button from '@cloudscape-design/components/button';
 import Icon from '@cloudscape-design/components/icon';
 import ExpandableSection from '@cloudscape-design/components/expandable-section';
 import StatusIndicator from '@cloudscape-design/components/status-indicator';
-import { dashboardStats as ds } from '../data/mockData';
+import { dashboardStats as ds, mockFindings } from '../data/mockData';
 import { Finding } from '../types';
 import FindingsList from './FindingsList';
 import SeverityBadge from './SeverityBadge';
@@ -241,6 +241,15 @@ export default function Dashboard({ onSelectFinding, onNavigateToThreats }: Prop
   const [we, setWe] = useState(true);
   const [widgetPanelOpen, setWidgetPanelOpen] = useState(false);
 
+  const threatFindings = mockFindings.filter(f => f.type === 'Threat');
+  const threatTotal = threatFindings.reduce((sum, f) => sum + f.similarFindings.length, 0);
+  const threatBySev = {
+    critical: threatFindings.filter(f => f.severity === 'Critical').reduce((s, f) => s + f.similarFindings.length, 0),
+    high: threatFindings.filter(f => f.severity === 'High').reduce((s, f) => s + f.similarFindings.length, 0),
+    medium: threatFindings.filter(f => f.severity === 'Medium').reduce((s, f) => s + f.similarFindings.length, 0),
+    low: threatFindings.filter(f => f.severity === 'Low').reduce((s, f) => s + f.similarFindings.length, 0),
+  };
+
   const sw = (id: string, ct: ReactNode) => (
     <div key={id} className="widget-compact">
       <Container>
@@ -348,20 +357,20 @@ export default function Dashboard({ onSelectFinding, onNavigateToThreats }: Prop
                 onClick={() => onNavigateToThreats?.('all')}
                 style={{ cursor: 'pointer' }}
               >
-                <NWT v="10" c="#ce3311" tr={tr} />
+                <NWT v={String(threatTotal)} c="#ce3311" tr={tr} />
               </div>
               <SpaceBetween direction="horizontal" size="xs">
                 <div onClick={() => onNavigateToThreats?.('Critical')} style={{ cursor: 'pointer' }}>
-                  <SeverityBadge severity="Critical" label={`C ${ds.threats.critical}`} />
+                  <SeverityBadge severity="Critical" label={`C ${threatBySev.critical}`} />
                 </div>
                 <div onClick={() => onNavigateToThreats?.('High')} style={{ cursor: 'pointer' }}>
-                  <SeverityBadge severity="High" label={`H ${ds.threats.high}`} />
+                  <SeverityBadge severity="High" label={`H ${threatBySev.high}`} />
                 </div>
                 <div onClick={() => onNavigateToThreats?.('Medium')} style={{ cursor: 'pointer' }}>
-                  <SeverityBadge severity="Medium" label={`M ${ds.threats.medium}`} />
+                  <SeverityBadge severity="Medium" label={`M ${threatBySev.medium}`} />
                 </div>
                 <div onClick={() => onNavigateToThreats?.('Low')} style={{ cursor: 'pointer' }}>
-                  <SeverityBadge severity="Low" label={`L ${ds.threats.low}`} />
+                  <SeverityBadge severity="Low" label={`L ${threatBySev.low}`} />
                 </div>
               </SpaceBetween>
             </>)}
