@@ -41,6 +41,9 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
   const [sortField, setSortField] = useState<SortField | null>('impact');
   const [sortDesc, setSortDesc] = useState(true);
   const [savedFilter, setSavedFilter] = useState<any>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [resourceFilter, setResourceFilter] = useState<any>(null);
+  const [findingFilter, setFindingFilter] = useState<any>(null);
 
   const filterPresets: Record<string, { severity: any; status: any }> = {
     'r1': { severity: { label: 'Critical', value: 'critical' }, status: { label: 'New', value: 'new' } },
@@ -142,7 +145,7 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
               />
               
               {/* Search bar with blue icon */}
-              <div style={{ position: 'relative', minWidth: 200, flex: '0 1 300px' }}>
+              <div style={{ position: 'relative', minWidth: 150, flex: '0 1 200px' }}>
                 <svg 
                   width="16" 
                   height="16" 
@@ -201,12 +204,16 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                       ]
                     },
                     {
-                      label: 'Saved filters', options: [
+                      label: 'By remediation themes', options: [
                         { label: 'Critical exposures - last 7 days', value: 'f1' },
                         { label: 'High severity threats - production', value: 'f2' },
                         { label: 'Unresolved findings - us-east-1', value: 'f3' },
                         { label: 'All open exposures by account', value: 'f4' },
                         { label: 'PII-related findings', value: 'f5' },
+                      ]
+                    },
+                    {
+                      label: 'Saved filters', options: [
                         { label: 'Externally exposed resources', value: 'f6' },
                         { label: 'Public S3 buckets', value: 'f7' },
                       ]
@@ -246,6 +253,63 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                   { label: 'Resolved', value: 'resolved' }
                 ]} 
               />
+              
+              {/* Advanced filters link or dropdowns */}
+              {!showAdvancedFilters ? (
+                <Button variant="link" onClick={() => setShowAdvancedFilters(true)}>
+                  Advanced filters
+                </Button>
+              ) : (
+                <>
+                  <Select 
+                    selectedOption={resourceFilter} 
+                    onChange={({ detail }) => setResourceFilter(detail.selectedOption)} 
+                    placeholder="By Resources"
+                    options={[
+                      { label: 'Lambda Functions', value: 'lambda' },
+                      { label: 'S3 Buckets', value: 's3' },
+                      { label: 'EC2 Instances', value: 'ec2' },
+                      { label: 'RDS Databases', value: 'rds' },
+                      { label: 'IAM Roles', value: 'iam' },
+                    ]} 
+                  />
+                  
+                  <Select 
+                    selectedOption={findingFilter} 
+                    onChange={({ detail }) => setFindingFilter(detail.selectedOption)} 
+                    placeholder="By Findings"
+                    options={[
+                      { label: 'Remote Execution', value: 'remote-exec' },
+                      { label: 'Data Exposure', value: 'data-exposure' },
+                      { label: 'Privilege Escalation', value: 'priv-esc' },
+                      { label: 'Unauthorized Access', value: 'unauth-access' },
+                      { label: 'Weak Encryption', value: 'weak-encryption' },
+                    ]} 
+                  />
+                  
+                  <ButtonDropdown
+                    variant="icon"
+                    items={[
+                      { text: 'Export filters', id: 'export' },
+                      { text: 'Reset all filters', id: 'reset' },
+                      { text: 'Filter settings', id: 'settings' },
+                    ]}
+                    onItemClick={({ detail }) => {
+                      if (detail.id === 'reset') {
+                        setSeverityFilter(null);
+                        setStatusFilter(null);
+                        setSavedFilter(null);
+                        setResourceFilter(null);
+                        setFindingFilter(null);
+                        setSelectedTab('all');
+                        setShowFilters(false);
+                        setShowAdvancedFilters(false);
+                      }
+                    }}
+                    ariaLabel="More filter options"
+                  />
+                </>
+              )}
             </div>
             
             {showFilters && (
