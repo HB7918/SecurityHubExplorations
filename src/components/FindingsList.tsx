@@ -33,7 +33,6 @@ const severityRank: Record<string, number> = { Critical: 0, High: 1, Medium: 2, 
 type SortField = 'title' | 'type' | 'severity' | 'count' | 'impact';
 export default function FindingsList({ onSelectFinding, filterType, statusFilter: externalStatusFilter, severityFilter: externalSeverityFilter, title }: FindingsListProps) {
   const [selectedTab, setSelectedTab] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [severityFilter, setSeverityFilter] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<any>(null);
@@ -63,7 +62,6 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
     if (preset) {
       setSeverityFilter(preset.severity);
       setStatusFilter(preset.status);
-      setShowFilters(true);
     }
   };
   const toggleExpanded = (id: string) => {
@@ -127,11 +125,6 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
         {!filterType && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              {/* Toggle filters button */}
-              <div onClick={() => setShowFilters(!showFilters)} role="button" tabIndex={0} aria-label="Toggle filters" style={{ width: 32, height: 32, minWidth: 32, maxWidth: 32, minHeight: 32, maxHeight: 32, borderRadius: "50%", border: showFilters ? "2px solid #0972d3" : "1px solid #aab7b8", background: showFilters ? "#0972d3" : "#fff", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }}>
-                <Icon name={showFilters ? 'caret-up-filled' : 'caret-down-filled'} variant={showFilters ? 'inverted' : 'normal'} />
-              </div>
-              
               {/* All | Exposures | Threats tabs */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #aab7b8', borderRadius: 20 }}>
                 <button
@@ -334,7 +327,7 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search or add filter"
+                  placeholder="Add filter"
                   style={{
                     width: '100%',
                     padding: '6px 10px 6px 32px',
@@ -351,10 +344,7 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
               {/* All Status */}
               <Select 
                 selectedOption={statusFilter} 
-                onChange={({ detail }) => {
-                  setStatusFilter(detail.selectedOption);
-                  if (detail.selectedOption) setShowFilters(true);
-                }} 
+                onChange={({ detail }) => setStatusFilter(detail.selectedOption)} 
                 placeholder="All Status"
                 options={[
                   { label: 'New', value: 'new' }, 
@@ -366,10 +356,7 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
               {/* All Severity */}
               <Select 
                 selectedOption={severityFilter} 
-                onChange={({ detail }) => {
-                  setSeverityFilter(detail.selectedOption);
-                  if (detail.selectedOption) setShowFilters(true);
-                }} 
+                onChange={({ detail }) => setSeverityFilter(detail.selectedOption)} 
                 placeholder="All Severity"
                 options={[
                   { label: 'Critical', value: 'critical' }, 
@@ -406,7 +393,7 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
               />
             </div>
             
-            {showFilters && (
+            {(severityFilter || statusFilter || resourceFilter || findingFilter) && (
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
                 <Box fontWeight="bold" fontSize="body-s">Applied filters:</Box>
                 
@@ -486,7 +473,14 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                 
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span className="clear-selections-btn">
-                    <Button variant="link" onClick={() => { setSeverityFilter(null); setStatusFilter(null); setSavedFilter(null); setSelectedTab('all'); setShowFilters(false); }}>
+                    <Button variant="link" onClick={() => { 
+                      setSeverityFilter(null); 
+                      setStatusFilter(null); 
+                      setResourceFilter(null);
+                      setFindingFilter(null);
+                      setSavedFilter(null); 
+                      setSelectedTab('all'); 
+                    }}>
                       Clear selections
                     </Button>
                   </span>
