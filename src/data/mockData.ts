@@ -53,9 +53,7 @@ const ap8: AttackPathNode = { id: 'ap8-iam', type: 'IAM User', name: 'svc-deploy
 
 const ap9: AttackPathNode = { id: 'ap9-ec2', type: 'EC2 Instance', name: 'prod-api-server-01', children: [{ id: 'ap9-ami', type: 'AMI', name: 'ami-0abc123 (120 days old)', children: [{ id: 'ap9-cve1', type: 'CVE', name: 'CVE-2024-1234 (kernel)', children: [], traitCount: 2 }, { id: 'ap9-cve2', type: 'CVE', name: 'CVE-2024-5678 (openssl)', children: [], traitCount: 1 }], traitCount: 3 }, { id: 'ap9-ip', type: 'Public IP', name: '54.23.45.67', children: [], traitCount: 1 }], category: 'primary' };
 
-const ap10: AttackPathNode = { id: 'ap10-lambda', type: 'Lambda Function', name: 'prod-email-sender', children: [{ id: 'ap10-env', type: 'Environment Variables', name: 'DB_PASSWORD=plaintext', children: [], traitCount: 3 }, { id: 'ap10-env2', type: 'Environment Variables', name: 'API_KEY=sk-live-abc123', children: [], traitCount: 2 }, { id: 'ap10-logs', type: 'CloudWatch Logs', name: 'Secrets visible in logs', children: [], traitCount: 1 }], category: 'primary' };
-
-const ap11: AttackPathNode = { id: 'ap11-ct', type: 'CloudTrail', name: 'prod-account-trail', children: [{ id: 'ap11-status', type: 'Status', name: 'Logging: DISABLED', children: [{ id: 'ap11-gap', type: 'Visibility Gap', name: 'No API audit since Feb 15', children: [], traitCount: 2 }], traitCount: 3 }], category: 'primary' };
+// Removed unused attack path nodes ap10 and ap11
 
 const ap12: AttackPathNode = { id: 'ap12-es', type: 'OpenSearch Domain', name: 'prod-search-cluster', children: [{ id: 'ap12-ep', type: 'Public Endpoint', name: 'search-prod.us-east-1.es.amazonaws.com', children: [{ id: 'ap12-idx', type: 'Index', name: 'user-profiles (PII)', children: [], traitCount: 2 }, { id: 'ap12-idx2', type: 'Index', name: 'search-queries', children: [], traitCount: 1 }], traitCount: 1 }], category: 'primary' };
 

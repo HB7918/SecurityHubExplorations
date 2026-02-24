@@ -30,13 +30,7 @@ const TD: Record<string, CD> = {
   '1year': { x: ['Mar','May','Jul','Sep','Nov','Jan'], y: 40, p: [38,34,30,25,20,14] },
 };
 
-const RES: Record<string, number[]> = {
-  "1day": [2,3,5,8,10,12,10],
-  "1week": [4,6,8,10,12,14,12],
-  "1month": [5,10,14,12],
-  "6months": [8,12,16,18,20,18],
-  "1year": [10,14,18,20,22,20],
-};
+// Removed unused RES constant
 
 function Chrt({ d, c, h = 50 }: { d: CD; c: string; h?: number }) {
   return (

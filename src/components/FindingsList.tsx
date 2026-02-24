@@ -21,8 +21,8 @@ import "./FindingsList.css";
 interface FindingsListProps {
   onSelectFinding: (finding: Finding, childResource?: string) => void;
   filterType?: 'Threat' | 'Exposure';
-  statusFilter?: Status | 'all';
-  severityFilter?: Severity | 'all';
+  statusFilter?: string | 'all';
+  severityFilter?: string | 'all';
   title?: string;
 }
 const ThreatIcon = () => (
