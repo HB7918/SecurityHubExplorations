@@ -5,6 +5,7 @@ import Container from '@cloudscape-design/components/container';
 import Button from '@cloudscape-design/components/button';
 import Select from '@cloudscape-design/components/select';
 import { Finding, Severity } from '../types';
+import { mockFindings } from '../data/mockData';
 import FindingsList from './FindingsList';
 import SeverityBadge from './SeverityBadge';
 import CommentsPanel from './CommentsPanel';
@@ -20,12 +21,13 @@ export default function Threats({ onSelectFinding, initialSeverityFilter = 'all'
   const [filterSearchText, setFilterSearchText] = useState('');
   const [selectedFilterSet, setSelectedFilterSet] = useState<any>(null);
 
-  const totalThreats = 10;
+  const threatFindings = mockFindings.filter(f => f.type === 'Threat');
+  const totalThreats = threatFindings.reduce((sum, f) => sum + f.similarFindings.length, 0);
   const severityCounts = {
-    'Critical': 2,
-    'High': 2,
-    'Medium': 3,
-    'Low': 3
+    'Critical': threatFindings.filter(f => f.severity === 'Critical').reduce((sum, f) => sum + f.similarFindings.length, 0),
+    'High': threatFindings.filter(f => f.severity === 'High').reduce((sum, f) => sum + f.similarFindings.length, 0),
+    'Medium': threatFindings.filter(f => f.severity === 'Medium').reduce((sum, f) => sum + f.similarFindings.length, 0),
+    'Low': threatFindings.filter(f => f.severity === 'Low').reduce((sum, f) => sum + f.similarFindings.length, 0),
   };
 
   const filterSetOptions = [
