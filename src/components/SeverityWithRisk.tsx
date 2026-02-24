@@ -1,4 +1,4 @@
-import Popover from '@cloudscape-design/components/popover';
+import { useState } from 'react';
 import { Severity } from '../types';
 import {
   colorBackgroundNotificationSeverityCritical,
@@ -38,23 +38,50 @@ function RiskSignal({ impact, severity }: { impact: number; severity: string }) 
 }
 
 export default function SeverityWithRisk({ severity, impact }: { severity: Severity; impact: number }) {
+  const [isHovered, setIsHovered] = useState(false);
   const s = styles[severity];
+  
   return (
-    <span className="severity-popover-trigger" style={{
-      display: 'inline-block', padding: '2px 8px', borderRadius: 4,
-      background: s.bg, whiteSpace: 'nowrap', color: s.text,
-    }}>
-      <Popover
-        dismissButton
-        position="bottom"
-        size="medium"
-        triggerType="text"
-        renderWithPortal
-        header="Estimated business risk"
-        content={<RiskSignal impact={impact} severity={severity} />}
-      >
-        <span style={{ color: 'inherit', fontSize: 12, fontWeight: 400, cursor: 'pointer' }}>{severity}</span>
-      </Popover>
+    <span 
+      className="severity-popover-trigger" 
+      style={{
+        display: 'inline-block', padding: '2px 8px', borderRadius: 4,
+        background: s.bg, whiteSpace: 'nowrap', color: s.text, position: 'relative'
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <span style={{ color: 'inherit', fontSize: 12, fontWeight: 400, cursor: 'pointer' }}>{severity}</span>
+      {isHovered && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          marginTop: 8,
+          background: '#fff',
+          border: '1px solid #d5dbdb',
+          borderRadius: 8,
+          padding: '12px 16px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+          zIndex: 1000,
+          minWidth: 200
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: '#16191f' }}>Estimated business risk</div>
+          <RiskSignal impact={impact} severity={severity} />
+          <div style={{
+            position: 'absolute',
+            top: '-4px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 0,
+            height: 0,
+            borderLeft: '4px solid transparent',
+            borderRight: '4px solid transparent',
+            borderBottom: '4px solid #d5dbdb'
+          }} />
+        </div>
+      )}
     </span>
   );
 }

@@ -271,7 +271,54 @@ export default function Dashboard({ onSelectFinding, onNavigateToThreats }: Prop
       }>Security Hub</Header>
 
       <ExpandableSection variant="default" headerText="Hub highlights"
-        headerActions={<Button variant="inline-link">Export highlights</Button>}
+        headerActions={
+          <SpaceBetween direction="horizontal" size="xs">
+            <div style={{ position: 'relative', minWidth: 200 }}>
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 16 16" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  zIndex: 1
+                }}
+              >
+                <path 
+                  d="M11.5 6.5C11.5 9.26142 9.26142 11.5 6.5 11.5C3.73858 11.5 1.5 9.26142 1.5 6.5C1.5 3.73858 3.73858 1.5 6.5 1.5C9.26142 1.5 11.5 3.73858 11.5 6.5Z" 
+                  stroke="#0972d3" 
+                  strokeWidth="1.5"
+                />
+                <path 
+                  d="M10 10L14.5 14.5" 
+                  stroke="#0972d3" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search"
+                style={{
+                  width: '100%',
+                  padding: '6px 10px 6px 32px',
+                  border: '1px solid #aab7b8',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  height: '31px'
+                }}
+              />
+            </div>
+            <Button variant="inline-link">Share highlights</Button>
+          </SpaceBetween>
+        }
         expanded={we} onChange={({ detail }) => setWe(detail.expanded)}>
         <SpaceBetween size="m">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

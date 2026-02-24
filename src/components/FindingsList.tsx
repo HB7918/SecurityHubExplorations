@@ -10,7 +10,6 @@ import Select from '@cloudscape-design/components/select';
 import Table from '@cloudscape-design/components/table';
 import Link from '@cloudscape-design/components/link';
 import Icon from '@cloudscape-design/components/icon';
-import SegmentedControl from '@cloudscape-design/components/segmented-control';
 import { Finding } from '../types';
 import { mockFindings } from '../data/mockData';
 import SeverityBadge from './SeverityBadge';
@@ -38,12 +37,12 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [severityFilter, setSeverityFilter] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<any>(null);
+  const [resourceFilter, setResourceFilter] = useState<any>(null);
+  const [findingFilter, setFindingFilter] = useState<any>(null);
   const [sortField, setSortField] = useState<SortField | null>('impact');
   const [sortDesc, setSortDesc] = useState(true);
   const [savedFilter, setSavedFilter] = useState<any>(null);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [resourceFilter, setResourceFilter] = useState<any>(null);
-  const [findingFilter, setFindingFilter] = useState<any>(null);
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
   const filterPresets: Record<string, { severity: any; status: any }> = {
     'r1': { severity: { label: 'Critical', value: 'critical' }, status: { label: 'New', value: 'new' } },
@@ -134,59 +133,140 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
               </div>
               
               {/* All | Exposures | Threats tabs */}
-              <SegmentedControl
-                selectedId={selectedTab}
-                onChange={({ detail }) => setSelectedTab(detail.selectedId)}
-                options={[
-                  { text: 'All', id: 'all' },
-                  { text: 'Exposures', id: 'exposures' },
-                  { text: 'Threats', id: 'threats' },
-                ]}
-              />
-              
-              {/* Search bar with blue icon */}
-              <div style={{ position: 'relative', minWidth: 150, flex: '0 1 200px' }}>
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 16 16" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #aab7b8', borderRadius: 20 }}>
+                <button
+                  onClick={() => setSelectedTab('all')}
                   style={{
-                    position: 'absolute',
-                    left: 10,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    pointerEvents: 'none',
-                    zIndex: 1
+                    padding: '6px 16px',
+                    border: 'none',
+                    background: selectedTab === 'all' ? '#0972d3' : 'transparent',
+                    color: selectedTab === 'all' ? '#fff' : '#16191f',
+                    fontSize: 14,
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    borderRight: '1px solid #aab7b8',
+                    transition: 'all 0.2s',
+                    borderTopLeftRadius: 20,
+                    borderBottomLeftRadius: 20
                   }}
                 >
-                  <path 
-                    d="M11.5 6.5C11.5 9.26142 9.26142 11.5 6.5 11.5C3.73858 11.5 1.5 9.26142 1.5 6.5C1.5 3.73858 3.73858 1.5 6.5 1.5C9.26142 1.5 11.5 3.73858 11.5 6.5Z" 
-                    stroke="#0972d3" 
-                    strokeWidth="1.5"
-                  />
-                  <path 
-                    d="M10 10L14.5 14.5" 
-                    stroke="#0972d3" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search findings"
+                  All
+                </button>
+                <button
+                  onClick={() => setSelectedTab('exposures')}
+                  onMouseEnter={() => setHoveredTab('exposures')}
+                  onMouseLeave={() => setHoveredTab(null)}
                   style={{
-                    width: '100%',
-                    padding: '6px 10px 6px 32px',
-                    border: '1px solid #aab7b8',
-                    borderRadius: 8,
-                    fontSize: 13,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    height: '31px'
+                    padding: '6px 16px',
+                    border: 'none',
+                    background: selectedTab === 'exposures' ? '#0972d3' : 'transparent',
+                    color: selectedTab === 'exposures' ? '#fff' : '#16191f',
+                    fontSize: 14,
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    borderRight: '1px solid #aab7b8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    transition: 'all 0.2s',
+                    position: 'relative'
                   }}
-                />
+                >
+                  Exposures
+                  <span style={{ color: selectedTab === 'exposures' ? '#fff' : '#5f6b7a', display: 'inline-flex', alignItems: 'center' }}>
+                    <Icon name="status-info" size="small" />
+                  </span>
+                  {hoveredTab === 'exposures' && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      marginTop: 8,
+                      background: '#fff',
+                      color: '#16191f',
+                      padding: '8px 12px',
+                      borderRadius: 4,
+                      fontSize: 12,
+                      whiteSpace: 'nowrap',
+                      zIndex: 1000,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      border: '1px solid #d5dbdb',
+                      pointerEvents: 'none'
+                    }}>
+                      Exposures are security misconfigurations that could be exploited
+                      <div style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 0,
+                        height: 0,
+                        borderLeft: '4px solid transparent',
+                        borderRight: '4px solid transparent',
+                        borderBottom: '4px solid #fff'
+                      }} />
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setSelectedTab('threats')}
+                  onMouseEnter={() => setHoveredTab('threats')}
+                  onMouseLeave={() => setHoveredTab(null)}
+                  style={{
+                    padding: '6px 16px',
+                    border: 'none',
+                    background: selectedTab === 'threats' ? '#0972d3' : 'transparent',
+                    color: selectedTab === 'threats' ? '#fff' : '#16191f',
+                    fontSize: 14,
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    borderTopRightRadius: 20,
+                    borderBottomRightRadius: 20
+                  }}
+                >
+                  Threats
+                  <span style={{ color: selectedTab === 'threats' ? '#fff' : '#5f6b7a', display: 'inline-flex', alignItems: 'center' }}>
+                    <Icon name="status-info" size="small" />
+                  </span>
+                  {hoveredTab === 'threats' && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      marginTop: 8,
+                      background: '#fff',
+                      color: '#16191f',
+                      padding: '8px 12px',
+                      borderRadius: 4,
+                      fontSize: 12,
+                      whiteSpace: 'nowrap',
+                      zIndex: 1000,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      border: '1px solid #d5dbdb',
+                      pointerEvents: 'none'
+                    }}>
+                      Threats are active security risks detected in your environment
+                      <div style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 0,
+                        height: 0,
+                        borderLeft: '4px solid transparent',
+                        borderRight: '4px solid transparent',
+                        borderBottom: '4px solid #fff'
+                      }} />
+                    </div>
+                  )}
+                </button>
               </div>
               
               {/* Saved & recent filters dropdown */}
@@ -223,14 +303,74 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                 />
               </div>
               
-              {/* Select severity */}
+              {/* Search bar with blue icon */}
+              <div style={{ position: 'relative', minWidth: 150, flex: '0 1 200px' }}>
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 16 16" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{
+                    position: 'absolute',
+                    left: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    zIndex: 1
+                  }}
+                >
+                  <path 
+                    d="M11.5 6.5C11.5 9.26142 9.26142 11.5 6.5 11.5C3.73858 11.5 1.5 9.26142 1.5 6.5C1.5 3.73858 3.73858 1.5 6.5 1.5C9.26142 1.5 11.5 3.73858 11.5 6.5Z" 
+                    stroke="#0972d3" 
+                    strokeWidth="1.5"
+                  />
+                  <path 
+                    d="M10 10L14.5 14.5" 
+                    stroke="#0972d3" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search or add filter"
+                  style={{
+                    width: '100%',
+                    padding: '6px 10px 6px 32px',
+                    border: '1px solid #aab7b8',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    height: '31px'
+                  }}
+                />
+              </div>
+              
+              {/* All Status */}
+              <Select 
+                selectedOption={statusFilter} 
+                onChange={({ detail }) => {
+                  setStatusFilter(detail.selectedOption);
+                  if (detail.selectedOption) setShowFilters(true);
+                }} 
+                placeholder="All Status"
+                options={[
+                  { label: 'New', value: 'new' }, 
+                  { label: 'In Progress', value: 'in-progress' }, 
+                  { label: 'Resolved', value: 'resolved' }
+                ]} 
+              />
+              
+              {/* All Severity */}
               <Select 
                 selectedOption={severityFilter} 
                 onChange={({ detail }) => {
                   setSeverityFilter(detail.selectedOption);
                   if (detail.selectedOption) setShowFilters(true);
                 }} 
-                placeholder="Select severity"
+                placeholder="All Severity"
                 options={[
                   { label: 'Critical', value: 'critical' }, 
                   { label: 'High', value: 'high' }, 
@@ -239,77 +379,31 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                 ]} 
               />
               
-              {/* Select status */}
+              {/* All Resources */}
               <Select 
-                selectedOption={statusFilter} 
-                onChange={({ detail }) => {
-                  setStatusFilter(detail.selectedOption);
-                  if (detail.selectedOption) setShowFilters(true);
-                }} 
-                placeholder="Select status"
+                selectedOption={resourceFilter}
+                onChange={({ detail }) => setResourceFilter(detail.selectedOption)}
+                placeholder="All Resources"
                 options={[
-                  { label: 'New', value: 'new' }, 
-                  { label: 'In Progress', value: 'in-progress' }, 
-                  { label: 'Resolved', value: 'resolved' }
+                  { label: 'EC2 Instances', value: 'ec2' },
+                  { label: 'S3 Buckets', value: 's3' },
+                  { label: 'Lambda Functions', value: 'lambda' },
+                  { label: 'RDS Databases', value: 'rds' }
                 ]} 
               />
               
-              {/* Advanced filters link or dropdowns */}
-              {!showAdvancedFilters ? (
-                <Button variant="link" onClick={() => setShowAdvancedFilters(true)}>
-                  Advanced filters
-                </Button>
-              ) : (
-                <>
-                  <Select 
-                    selectedOption={resourceFilter} 
-                    onChange={({ detail }) => setResourceFilter(detail.selectedOption)} 
-                    placeholder="By Resources"
-                    options={[
-                      { label: 'Lambda Functions', value: 'lambda' },
-                      { label: 'S3 Buckets', value: 's3' },
-                      { label: 'EC2 Instances', value: 'ec2' },
-                      { label: 'RDS Databases', value: 'rds' },
-                      { label: 'IAM Roles', value: 'iam' },
-                    ]} 
-                  />
-                  
-                  <Select 
-                    selectedOption={findingFilter} 
-                    onChange={({ detail }) => setFindingFilter(detail.selectedOption)} 
-                    placeholder="By Findings"
-                    options={[
-                      { label: 'Remote Execution', value: 'remote-exec' },
-                      { label: 'Data Exposure', value: 'data-exposure' },
-                      { label: 'Privilege Escalation', value: 'priv-esc' },
-                      { label: 'Unauthorized Access', value: 'unauth-access' },
-                      { label: 'Weak Encryption', value: 'weak-encryption' },
-                    ]} 
-                  />
-                  
-                  <ButtonDropdown
-                    variant="icon"
-                    items={[
-                      { text: 'Export filters', id: 'export' },
-                      { text: 'Reset all filters', id: 'reset' },
-                      { text: 'Filter settings', id: 'settings' },
-                    ]}
-                    onItemClick={({ detail }) => {
-                      if (detail.id === 'reset') {
-                        setSeverityFilter(null);
-                        setStatusFilter(null);
-                        setSavedFilter(null);
-                        setResourceFilter(null);
-                        setFindingFilter(null);
-                        setSelectedTab('all');
-                        setShowFilters(false);
-                        setShowAdvancedFilters(false);
-                      }
-                    }}
-                    ariaLabel="More filter options"
-                  />
-                </>
-              )}
+              {/* All Findings */}
+              <Select 
+                selectedOption={findingFilter}
+                onChange={({ detail }) => setFindingFilter(detail.selectedOption)}
+                placeholder="All Findings"
+                options={[
+                  { label: 'Unencrypted data', value: 'unencrypted' },
+                  { label: 'Public access', value: 'public' },
+                  { label: 'Missing patches', value: 'patches' },
+                  { label: 'Weak credentials', value: 'credentials' }
+                ]} 
+              />
             </div>
             
             {showFilters && (
@@ -390,7 +484,6 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                   </div>
                 )}
                 
-                <Button>+ Add filter</Button>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span className="clear-selections-btn">
                     <Button variant="link" onClick={() => { setSeverityFilter(null); setStatusFilter(null); setSavedFilter(null); setSelectedTab('all'); setShowFilters(false); }}>
