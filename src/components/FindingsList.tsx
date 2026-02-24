@@ -40,7 +40,6 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
   const [statusFilter, setStatusFilter] = useState<any>(null);
   const [sortField, setSortField] = useState<SortField | null>('impact');
   const [sortDesc, setSortDesc] = useState(true);
-  const [quickFilter, setQuickFilter] = useState<string | null>(null);
   const [savedFilter, setSavedFilter] = useState<any>(null);
 
   const filterPresets: Record<string, { severity: any; status: any }> = {
@@ -52,6 +51,8 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
     'f3': { severity: null, status: { label: 'New', value: 'new' } },
     'f4': { severity: null, status: null },
     'f5': { severity: null, status: null },
+    'f6': { severity: null, status: null },
+    'f7': { severity: null, status: null },
   };
 
   const handleSavedFilterChange = (opt: any) => {
@@ -123,10 +124,13 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
       <SpaceBetween size="m">
         {!filterType && (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {/* Toggle filters button */}
               <div onClick={() => setShowFilters(!showFilters)} role="button" tabIndex={0} aria-label="Toggle filters" style={{ width: 32, height: 32, minWidth: 32, maxWidth: 32, minHeight: 32, maxHeight: 32, borderRadius: "50%", border: showFilters ? "2px solid #0972d3" : "1px solid #aab7b8", background: showFilters ? "#0972d3" : "#fff", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }}>
                 <Icon name={showFilters ? 'caret-up-filled' : 'caret-down-filled'} variant={showFilters ? 'inverted' : 'normal'} />
               </div>
+              
+              {/* All | Exposures | Threats tabs */}
               <SegmentedControl
                 selectedId={selectedTab}
                 onChange={({ detail }) => setSelectedTab(detail.selectedId)}
@@ -136,7 +140,54 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                   { text: 'Threats', id: 'threats' },
                 ]}
               />
-              <div style={{ minWidth: 240 }}>
+              
+              {/* Search bar with blue icon */}
+              <div style={{ position: 'relative', minWidth: 200, flex: '0 1 300px' }}>
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 16 16" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{
+                    position: 'absolute',
+                    left: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    zIndex: 1
+                  }}
+                >
+                  <path 
+                    d="M11.5 6.5C11.5 9.26142 9.26142 11.5 6.5 11.5C3.73858 11.5 1.5 9.26142 1.5 6.5C1.5 3.73858 3.73858 1.5 6.5 1.5C9.26142 1.5 11.5 3.73858 11.5 6.5Z" 
+                    stroke="#0972d3" 
+                    strokeWidth="1.5"
+                  />
+                  <path 
+                    d="M10 10L14.5 14.5" 
+                    stroke="#0972d3" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search findings"
+                  style={{
+                    width: '100%',
+                    padding: '6px 10px 6px 32px',
+                    border: '1px solid #aab7b8',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    height: '31px'
+                  }}
+                />
+              </div>
+              
+              {/* Saved & recent filters dropdown */}
+              <div style={{ minWidth: 200 }}>
                 <Select
                   selectedOption={savedFilter}
                   onChange={({ detail }) => handleSavedFilterChange(detail.selectedOption)}
@@ -156,26 +207,143 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
                         { label: 'Unresolved findings - us-east-1', value: 'f3' },
                         { label: 'All open exposures by account', value: 'f4' },
                         { label: 'PII-related findings', value: 'f5' },
+                        { label: 'Externally exposed resources', value: 'f6' },
+                        { label: 'Public S3 buckets', value: 'f7' },
                       ]
                     },
                   ]}
                   expandToViewport
                 />
               </div>
-              <span style={{ borderLeft: "1px solid #d5dbdb", height: 24, display: "inline-block" }} />
-              {["Externally exposed resources", "Public S3 buckets"].map(label => (
-                <span key={label} onClick={() => setQuickFilter(quickFilter === label ? null : label)} style={{ padding: "4px 12px", borderRadius: 16, fontSize: 13, cursor: "pointer", border: quickFilter === label ? "2px solid #0972d3" : "1px solid #aab7b8", background: quickFilter === label ? "#f0f7ff" : "#fff", color: quickFilter === label ? "#0972d3" : "#16191f", fontWeight: quickFilter === label ? 600 : 400, userSelect: "none", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center" }}>{label}</span>
-              ))}
+              
+              {/* Select severity */}
+              <Select 
+                selectedOption={severityFilter} 
+                onChange={({ detail }) => {
+                  setSeverityFilter(detail.selectedOption);
+                  if (detail.selectedOption) setShowFilters(true);
+                }} 
+                placeholder="Select severity"
+                options={[
+                  { label: 'Critical', value: 'critical' }, 
+                  { label: 'High', value: 'high' }, 
+                  { label: 'Medium', value: 'medium' }, 
+                  { label: 'Low', value: 'low' }
+                ]} 
+              />
+              
+              {/* Select status */}
+              <Select 
+                selectedOption={statusFilter} 
+                onChange={({ detail }) => {
+                  setStatusFilter(detail.selectedOption);
+                  if (detail.selectedOption) setShowFilters(true);
+                }} 
+                placeholder="Select status"
+                options={[
+                  { label: 'New', value: 'new' }, 
+                  { label: 'In Progress', value: 'in-progress' }, 
+                  { label: 'Resolved', value: 'resolved' }
+                ]} 
+              />
             </div>
+            
             {showFilters && (
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-                <Box fontWeight="bold" fontSize="body-s">Filter by:</Box>
-                <Select selectedOption={severityFilter} onChange={({ detail }) => setSeverityFilter(detail.selectedOption)} placeholder="Select severity"
-                  options={[{ label: 'Critical', value: 'critical' }, { label: 'High', value: 'high' }, { label: 'Medium', value: 'medium' }, { label: 'Low', value: 'low' }]} />
-                <Select selectedOption={statusFilter} onChange={({ detail }) => setStatusFilter(detail.selectedOption)} placeholder="Select status"
-                  options={[{ label: 'New', value: 'new' }, { label: 'In Progress', value: 'in-progress' }, { label: 'Resolved', value: 'resolved' }]} />
+                <Box fontWeight="bold" fontSize="body-s">Applied filters:</Box>
+                
+                {/* Show severity filter chip */}
+                {severityFilter && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '4px 8px 4px 12px',
+                      backgroundColor: '#e1f2ff',
+                      border: '1px solid #0972d3',
+                      borderRadius: 4,
+                      fontSize: 13,
+                      color: '#0972d3'
+                    }}
+                  >
+                    <span>
+                      <span style={{ fontWeight: 600 }}>Severity</span> = {severityFilter.label}
+                    </span>
+                    <button
+                      onClick={() => setSeverityFilter(null)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#0972d3',
+                        fontSize: 16
+                      }}
+                      aria-label="Remove severity filter"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                
+                {/* Show status filter chip */}
+                {statusFilter && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '4px 8px 4px 12px',
+                      backgroundColor: '#e1f2ff',
+                      border: '1px solid #0972d3',
+                      borderRadius: 4,
+                      fontSize: 13,
+                      color: '#0972d3'
+                    }}
+                  >
+                    <span>
+                      <span style={{ fontWeight: 600 }}>Status</span> = {statusFilter.label}
+                    </span>
+                    <button
+                      onClick={() => setStatusFilter(null)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: '#0972d3',
+                        fontSize: 16
+                      }}
+                      aria-label="Remove status filter"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                
                 <Button>+ Add filter</Button>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span className="clear-selections-btn"><Button variant="link" onClick={() => { setSeverityFilter(null); setStatusFilter(null); setSavedFilter(null); setQuickFilter(null); setSelectedTab('all'); setShowFilters(false); }}>Clear selections</Button></span><span style={{ borderLeft: "1px solid #d5dbdb", height: 20, display: "inline-block" }} /><ButtonDropdown variant="normal" mainAction={{ text: 'Save filter', onClick: () => {} }} items={[{ text: 'Update filter', id: 'update' }, { text: 'Delete filter', id: 'delete' }]} onItemClick={() => {}} /></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="clear-selections-btn">
+                    <Button variant="link" onClick={() => { setSeverityFilter(null); setStatusFilter(null); setSavedFilter(null); setSelectedTab('all'); setShowFilters(false); }}>
+                      Clear selections
+                    </Button>
+                  </span>
+                  <span style={{ borderLeft: "1px solid #d5dbdb", height: 20, display: "inline-block" }} />
+                  <ButtonDropdown 
+                    variant="normal" 
+                    mainAction={{ text: 'Save filter', onClick: () => {} }} 
+                    items={[
+                      { text: 'Update filter', id: 'update' }, 
+                      { text: 'Delete filter', id: 'delete' }
+                    ]} 
+                    onItemClick={() => {}} 
+                  />
+                </div>
               </div>
             )}
           </>
