@@ -26,6 +26,7 @@ interface Props {
 type CD = { x: string[]; y: number; p: number[] };
 
 const TD: Record<string, CD> = {
+  'lastlogin': { x: ['12am','4am','8am','12pm','4pm','8pm','12am'], y: 25, p: [18,16,20,17,13,15,10] },
   '1day': { x: ['12am','4am','8am','12pm','4pm','8pm','12am'], y: 25, p: [20,18,22,19,15,17,12] },
   '1week': { x: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], y: 28, p: [25,23,22,20,18,16,14] },
   '1month': { x: ['Wk1','Wk2','Wk3','Wk4'], y: 30, p: [28,24,20,16] },
@@ -34,6 +35,7 @@ const TD: Record<string, CD> = {
 };
 
 const RD: Record<string, number[]> = {
+  'lastlogin': [1,3,5,7,9,12,15],
   '1day': [2,4,6,8,10,14,18],
   '1week': [3,5,8,11,14,17,20],
   '1month': [4,10,16,22],
@@ -234,7 +236,7 @@ function NewsTicker() {
 }
 
 export default function Dashboard({ onSelectFinding, onNavigateToThreats }: Props) {
-  const [tr, setTr] = useState('1day');
+  const [tr, setTr] = useState('lastlogin');
   const { mode, setMode, modeLabel } = useMode();
   const [we, setWe] = useState(true);
   const [widgetPanelOpen, setWidgetPanelOpen] = useState(false);
@@ -274,6 +276,7 @@ export default function Dashboard({ onSelectFinding, onNavigateToThreats }: Prop
         <SpaceBetween size="m">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <SegmentedControl selectedId={tr} onChange={({ detail }) => setTr(detail.selectedId)} options={[
+              { text: 'Since last login', id: 'lastlogin' },
               { text: '1 day', id: '1day' }, { text: '1 week', id: '1week' },
               { text: '1 month', id: '1month' }, { text: '6 months', id: '6months' },
               { text: '1 year', id: '1year' }
