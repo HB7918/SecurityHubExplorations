@@ -11,10 +11,11 @@ import CommentsPanel from './CommentsPanel';
 
 interface Props {
   onSelectFinding: (f: Finding, childRes?: string) => void;
+  initialSeverityFilter?: string;
 }
 
-export default function Threats({ onSelectFinding }: Props) {
-  const [selectedSeverity, setSelectedSeverity] = useState<Severity | 'all'>('all');
+export default function Threats({ onSelectFinding, initialSeverityFilter = 'all' }: Props) {
+  const [selectedSeverity, setSelectedSeverity] = useState<Severity | 'all'>(initialSeverityFilter as Severity | 'all');
   const [activeFilters, setActiveFilters] = useState<Array<{ id: string; label: string; value: string }>>([]);
   const [filterSearchText, setFilterSearchText] = useState('');
   const [selectedFilterSet, setSelectedFilterSet] = useState<any>(null);

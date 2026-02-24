@@ -19,7 +19,10 @@ import './Dashboard.css';
 import ModeSelector, { useMode } from './ModeSelector';
 import WidgetPanel from './WidgetPanel';
 
-interface Props { onSelectFinding: (f: Finding, childRes?: string) => void }
+interface Props { 
+  onSelectFinding: (f: Finding, childRes?: string) => void;
+  onNavigateToThreats?: (severityFilter?: string) => void;
+}
 type CD = { x: string[]; y: number; p: number[] };
 
 const TD: Record<string, CD> = {
@@ -230,7 +233,7 @@ function NewsTicker() {
   );
 }
 
-export default function Dashboard({ onSelectFinding }: Props) {
+export default function Dashboard({ onSelectFinding, onNavigateToThreats }: Props) {
   const [tr, setTr] = useState('1day');
   const { mode, setMode, modeLabel } = useMode();
   const [we, setWe] = useState(true);
@@ -291,12 +294,25 @@ export default function Dashboard({ onSelectFinding }: Props) {
             </>)}
             {sw('threat', <>
               <WT>Threat <IB /></WT>
-              <NWT v="10" c="#ce3311" tr={tr} />
+              <div 
+                onClick={() => onNavigateToThreats?.('all')}
+                style={{ cursor: 'pointer' }}
+              >
+                <NWT v="10" c="#ce3311" tr={tr} />
+              </div>
               <SpaceBetween direction="horizontal" size="xs">
-                <SeverityBadge severity="Critical" label={`C ${ds.threats.critical}`} />
-                <SeverityBadge severity="High" label={`H ${ds.threats.high}`} />
-                <SeverityBadge severity="Medium" label={`M ${ds.threats.medium}`} />
-                <SeverityBadge severity="Low" label={`L ${ds.threats.low}`} />
+                <div onClick={() => onNavigateToThreats?.('Critical')} style={{ cursor: 'pointer' }}>
+                  <SeverityBadge severity="Critical" label={`C ${ds.threats.critical}`} />
+                </div>
+                <div onClick={() => onNavigateToThreats?.('High')} style={{ cursor: 'pointer' }}>
+                  <SeverityBadge severity="High" label={`H ${ds.threats.high}`} />
+                </div>
+                <div onClick={() => onNavigateToThreats?.('Medium')} style={{ cursor: 'pointer' }}>
+                  <SeverityBadge severity="Medium" label={`M ${ds.threats.medium}`} />
+                </div>
+                <div onClick={() => onNavigateToThreats?.('Low')} style={{ cursor: 'pointer' }}>
+                  <SeverityBadge severity="Low" label={`L ${ds.threats.low}`} />
+                </div>
               </SpaceBetween>
             </>)}
             {sw('vulns', <>

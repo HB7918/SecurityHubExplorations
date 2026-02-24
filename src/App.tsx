@@ -5,7 +5,6 @@ import SideNavigation from '@cloudscape-design/components/side-navigation';
 import Dashboard from './components/Dashboard';
 import Threats from './components/Threats';
 import FindingDetails from './components/FindingDetails';
-import CurrentSecurityHub from './components/CurrentSecurityHub';
 import { Finding } from './types';
 import '@cloudscape-design/global-styles/index.css';
 
@@ -15,6 +14,12 @@ function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
   const [primaryResource, setPrimaryResource] = useState<string | undefined>(undefined);
+  const [threatsSeverityFilter, setThreatsSeverityFilter] = useState<string>('all');
+
+  const handleNavigateToThreats = (severityFilter: string = 'all') => {
+    setThreatsSeverityFilter(severityFilter);
+    setCurrentView('threats');
+  };
 
   return (
     <>
@@ -135,10 +140,16 @@ function App() {
             content={
               <>
                 {currentView === 'dashboard' && (
-                  <Dashboard onSelectFinding={(f, childRes) => { setSelectedFinding(f); setPrimaryResource(childRes); }} />
+                  <Dashboard 
+                    onSelectFinding={(f, childRes) => { setSelectedFinding(f); setPrimaryResource(childRes); }} 
+                    onNavigateToThreats={handleNavigateToThreats}
+                  />
                 )}
                 {currentView === 'threats' && (
-                  <Threats onSelectFinding={(f, childRes) => { setSelectedFinding(f); setPrimaryResource(childRes); }} />
+                  <Threats 
+                    onSelectFinding={(f, childRes) => { setSelectedFinding(f); setPrimaryResource(childRes); }}
+                    initialSeverityFilter={threatsSeverityFilter}
+                  />
                 )}
                 {selectedFinding && (
                   <FindingDetails finding={selectedFinding} primaryResource={primaryResource} onClose={() => setSelectedFinding(null)} />
