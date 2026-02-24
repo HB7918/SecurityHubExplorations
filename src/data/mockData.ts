@@ -474,5 +474,6 @@ export const dashboardStats = {
   totalFindings: { total: 2500, change: -2 },
   threats: { total: 6, change: -2, critical: 2, high: 2, medium: 1, low: 1 },
   vulnerabilities: { total: 200, change: -2, critical: 20, high: 60, medium: 100, low: 20 },
-  posture: { total: 560, change: -2, critical: 10, high: 90, medium: 290, low: 170 }
+  posture: { total: 560, change: -2, critical: 10, high: 90, medium: 290, low: 170 },
+  sensitiveData: { total: 85, change: -3, critical: 5, high: 20, medium: 35, low: 25 }
 };
