@@ -80,6 +80,30 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 npm run build
 ```
 
+### ⚠️ Pre-Deployment Checklist
+
+**IMPORTANT:** Always run these checks before pushing to prevent deployment failures:
+
+1. ✅ Run `npm run build` locally and verify it succeeds
+2. ✅ Check for TypeScript errors (TS6133, TS2304)
+3. ✅ Remove all unused imports and variables
+4. ✅ Test the application with `npm run dev`
+
+**Common TypeScript Errors:**
+- `TS6133`: Unused imports or variables (e.g., imported but never used)
+- `TS2304`: Undefined types (missing imports)
+
+**Quick Fix:**
+```bash
+# Always test build before pushing
+npm run build
+
+# If errors occur, fix them and rebuild
+npm run build
+```
+
+See `.kiro/steering/typescript-deployment-checklist.md` for detailed guidelines.
+
 ## 🛠️ Technology Stack
 
 - React 18

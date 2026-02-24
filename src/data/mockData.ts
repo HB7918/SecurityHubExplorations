@@ -53,6 +53,8 @@ const ap8: AttackPathNode = { id: 'ap8-iam', type: 'IAM User', name: 'svc-deploy
 
 const ap9: AttackPathNode = { id: 'ap9-ec2', type: 'EC2 Instance', name: 'prod-api-server-01', children: [{ id: 'ap9-ami', type: 'AMI', name: 'ami-0abc123 (120 days old)', children: [{ id: 'ap9-cve1', type: 'CVE', name: 'CVE-2024-1234 (kernel)', children: [], traitCount: 2 }, { id: 'ap9-cve2', type: 'CVE', name: 'CVE-2024-5678 (openssl)', children: [], traitCount: 1 }], traitCount: 3 }, { id: 'ap9-ip', type: 'Public IP', name: '54.23.45.67', children: [], traitCount: 1 }], category: 'primary' };
 
+const ap10: AttackPathNode = { id: 'ap10-alb', type: 'Application Load Balancer', name: 'prod-alb-web', children: [{ id: 'ap10-tls', type: 'TLS Config', name: 'TLS 1.0/1.1 enabled', children: [{ id: 'ap10-cipher', type: 'Weak Ciphers', name: 'DES, RC4 enabled', children: [], traitCount: 2 }], traitCount: 1 }, { id: 'ap10-target', type: 'Target Group', name: 'prod-web-targets', children: [{ id: 'ap10-ec2', type: 'EC2 Instances', name: '5 instances', children: [], traitCount: 1 }], traitCount: 1 }], category: 'primary' };
+
 // Removed unused attack path nodes ap10 and ap11
 
 const ap12: AttackPathNode = { id: 'ap12-es', type: 'OpenSearch Domain', name: 'prod-search-cluster', children: [{ id: 'ap12-ep', type: 'Public Endpoint', name: 'search-prod.us-east-1.es.amazonaws.com', children: [{ id: 'ap12-idx', type: 'Index', name: 'user-profiles (PII)', children: [], traitCount: 2 }, { id: 'ap12-idx2', type: 'Index', name: 'search-queries', children: [], traitCount: 1 }], traitCount: 1 }], category: 'primary' };
@@ -251,6 +253,132 @@ export const mockFindings: Finding[] = [
       'Replace wildcard IAM permissions with resource-specific policies',
       'Remove cross-account assume-role permissions unless explicitly required',
       'Implement IAM Access Analyzer to identify unused permissions'
+    ]
+  },
+  {
+    id: 'finding-6a',
+    title: 'Kubernetes cluster with exposed dashboard and default credentials',
+    type: 'Threat',
+    severity: 'Medium',
+    status: 'New',
+    count: 3,
+    impact: 78,
+    resource: 'prod-k8s-cluster',
+    resourceType: 'EKS Cluster',
+    account: '295562301397',
+    region: 'us-west-2',
+    age: '2 days',
+    traits: [
+      { id: 't35', name: 'Default Credentials', category: 'Vulnerability' },
+      { id: 't36', name: 'Public Dashboard', category: 'Reachability' }
+    ],
+    aiSummary: 'A production Kubernetes cluster has the dashboard exposed to the internet with default admin credentials still active. This allows unauthorized access to cluster management functions.',
+    similarFindings: [
+      { id: 'sf61', resource: 'staging-k8s-cluster', account: '295562301397', region: 'us-west-2' },
+      { id: 'sf62', resource: 'dev-k8s-cluster', account: '295562301398', region: 'us-east-1' },
+      { id: 'sf63', resource: 'test-k8s-cluster', account: '295562301397', region: 'eu-west-1' }
+    ],
+    attackPath: ap7,
+    remediationSteps: [
+      'Disable public access to Kubernetes dashboard',
+      'Change default admin credentials immediately',
+      'Implement RBAC with least privilege access',
+      'Enable audit logging for all cluster operations'
+    ]
+  },
+  {
+    id: 'finding-6b',
+    title: 'DynamoDB table with public read access containing user session data',
+    type: 'Threat',
+    severity: 'Medium',
+    status: 'New',
+    count: 2,
+    impact: 72,
+    resource: 'user-sessions-table',
+    resourceType: 'DynamoDB Table',
+    account: '295562301398',
+    region: 'us-east-1',
+    age: '1 day',
+    traits: [
+      { id: 't37', name: 'Public Access', category: 'Reachability' },
+      { id: 't38', name: 'Session Data', category: 'Sensitive Data' }
+    ],
+    aiSummary: 'A DynamoDB table storing user session tokens and authentication data has a resource policy allowing public read access from any AWS account.',
+    similarFindings: [
+      { id: 'sf64', resource: 'auth-tokens-table', account: '295562301398', region: 'us-east-1' },
+      { id: 'sf65', resource: 'user-cache-table', account: '295562301397', region: 'us-west-2' }
+    ],
+    attackPath: ap8,
+    remediationSteps: [
+      'Remove public access from DynamoDB table resource policy',
+      'Implement VPC endpoints for DynamoDB access',
+      'Enable point-in-time recovery and encryption at rest',
+      'Rotate all session tokens immediately'
+    ]
+  },
+  {
+    id: 'finding-6c',
+    title: 'ElastiCache Redis cluster without encryption in transit',
+    type: 'Threat',
+    severity: 'Low',
+    status: 'New',
+    count: 4,
+    impact: 55,
+    resource: 'prod-redis-cache',
+    resourceType: 'ElastiCache Cluster',
+    account: '295562301397',
+    region: 'us-east-1',
+    age: '3 days',
+    traits: [
+      { id: 't39', name: 'No Encryption', category: 'Misconfiguration' },
+      { id: 't40', name: 'Cache Data', category: 'Sensitive Data' }
+    ],
+    aiSummary: 'A production Redis cluster used for caching user data does not have encryption in transit enabled, potentially exposing cached credentials and session information.',
+    similarFindings: [
+      { id: 'sf66', resource: 'staging-redis-cache', account: '295562301397', region: 'us-east-1' },
+      { id: 'sf67', resource: 'api-redis-cache', account: '295562301398', region: 'us-west-2' },
+      { id: 'sf68', resource: 'session-redis-cache', account: '295562301397', region: 'eu-west-1' },
+      { id: 'sf69', resource: 'temp-redis-cache', account: '295562301399', region: 'us-east-1' }
+    ],
+    attackPath: ap9,
+    remediationSteps: [
+      'Enable encryption in transit for Redis cluster',
+      'Enable encryption at rest using AWS KMS',
+      'Implement Redis AUTH for authentication',
+      'Move cluster to private subnet with VPC security groups'
+    ]
+  },
+  {
+    id: 'finding-6d',
+    title: 'Application Load Balancer with insecure SSL/TLS configuration',
+    type: 'Threat',
+    severity: 'Low',
+    status: 'New',
+    count: 5,
+    impact: 50,
+    resource: 'prod-alb-web',
+    resourceType: 'Application Load Balancer',
+    account: '295562301398',
+    region: 'us-west-2',
+    age: '4 days',
+    traits: [
+      { id: 't41', name: 'Weak TLS', category: 'Vulnerability' },
+      { id: 't42', name: 'Public Endpoint', category: 'Reachability' }
+    ],
+    aiSummary: 'An Application Load Balancer serving production traffic supports outdated TLS 1.0 and 1.1 protocols with weak cipher suites, making it vulnerable to man-in-the-middle attacks.',
+    similarFindings: [
+      { id: 'sf70', resource: 'api-alb', account: '295562301398', region: 'us-west-2' },
+      { id: 'sf71', resource: 'admin-alb', account: '295562301397', region: 'us-east-1' },
+      { id: 'sf72', resource: 'mobile-alb', account: '295562301398', region: 'eu-west-1' },
+      { id: 'sf73', resource: 'partner-alb', account: '295562301399', region: 'us-east-1' },
+      { id: 'sf74', resource: 'internal-alb', account: '295562301397', region: 'ap-southeast-1' }
+    ],
+    attackPath: ap10,
+    remediationSteps: [
+      'Update SSL/TLS policy to support only TLS 1.2 and 1.3',
+      'Configure strong cipher suites (AES-GCM)',
+      'Enable HTTP to HTTPS redirect',
+      'Implement AWS WAF for additional protection'
     ]
   },
   {
@@ -470,7 +598,7 @@ export const mockFindings: Finding[] = [
 export const dashboardStats = {
   exposures: { total: 20, change: -2, critical: 18, high: 15, medium: 9, low: 1 },
   totalFindings: { total: 2500, change: -2 },
-  threats: { total: 6, change: -2, critical: 2, high: 2, medium: 1, low: 1 },
+  threats: { total: 10, change: -2, critical: 2, high: 2, medium: 3, low: 3 },
   vulnerabilities: { total: 200, change: -2, critical: 20, high: 60, medium: 100, low: 20 },
   posture: { total: 560, change: -2, critical: 10, high: 90, medium: 290, low: 170 },
   sensitiveData: { total: 85, change: -3, critical: 5, high: 20, medium: 35, low: 25 }

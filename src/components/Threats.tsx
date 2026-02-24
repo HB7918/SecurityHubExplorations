@@ -20,12 +20,12 @@ export default function Threats({ onSelectFinding, initialSeverityFilter = 'all'
   const [filterSearchText, setFilterSearchText] = useState('');
   const [selectedFilterSet, setSelectedFilterSet] = useState<any>(null);
 
-  const totalThreats = 6;
+  const totalThreats = 10;
   const severityCounts = {
     'Critical': 2,
     'High': 2,
-    'Medium': 1,
-    'Low': 1
+    'Medium': 3,
+    'Low': 3
   };
 
   const filterSetOptions = [

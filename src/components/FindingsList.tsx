@@ -119,7 +119,7 @@ export default function FindingsList({ onSelectFinding, filterType, statusFilter
     </span>
   );
   return (
-    <Container header={<div style={{ fontSize: 16, fontWeight: 700 }}>{title || 'Priority hub'} <span style={{ fontWeight: 400, color: "#5f6b7a" }}>({sortedFindings.reduce((sum, f) => sum + f.similarFindings.length, 0)})</span></div>}>
+    <Container header={<div style={{ fontSize: 16, fontWeight: 700 }}>{title || 'Priority hub'} <span style={{ fontWeight: 400, color: "#5f6b7a" }}>({sortedFindings.length})</span></div>}>
       <SpaceBetween size="m">
         {!filterType && (
           <>
